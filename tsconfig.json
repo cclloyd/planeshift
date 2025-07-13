@@ -3,13 +3,24 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "allowJs": true,
+    "module": "ESNext",               // Remain on CommonJS
+    "moduleResolution": "bundler",         // Stick to Node resolution
+//    "paths": {
+//      "fvtt-types": ["node_modules/fvtt-types/src"]
+//    },
+//    "typeRoots": [
+//      "node_modules/@types",
+//      "node_modules/fvtt-types/src"
+//    ],
     "types": [
       "fvtt-types",
       "jest"
     ],
-    "moduleResolution": "bundler",
-    "strict": true,
-    "module": "ES2022",
+    "paths": {
+      "*": ["*.js"]
+    },
+
+    //    "allowImportingTsExtensions": true,
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,

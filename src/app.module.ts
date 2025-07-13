@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
-import { PuppeteerModule } from './puppeteer/puppeteer.module.js';
+import { FoundryModule } from './foundry/foundry.module.js';
+import { GameModule } from './game/game.module.js';
 
 @Module({
-  imports: [PuppeteerModule],
-  controllers: [AppController],
-  providers: [AppService],
+    imports: [FoundryModule, GameModule],
+    controllers: [AppController],
+    providers: [AppService],
 })
 export class AppModule {}
