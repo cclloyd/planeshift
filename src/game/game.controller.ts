@@ -1,28 +1,22 @@
 import { Controller, Get } from '@nestjs/common';
-import { FoundryService } from '../foundry/foundry.service.js';
+import { GameService } from './game.service.js';
 
 @Controller()
 export class GameController {
-    constructor(private readonly foundry: FoundryService) {}
+    constructor(private readonly game: GameService) {}
 
     @Get()
     async getGame() {
-        return (await this.foundry.runFoundry(() => {
-            return game.data;
-        })) as Game;
+        return await this.game.getGame();
     }
 
     @Get('world')
     async getWorld() {
-        return (await this.foundry.runFoundry(() => {
-            return game.data!.world;
-        })) as World;
+        return await this.game.getWorld();
     }
 
     @Get('system')
     async getSystem() {
-        return (await this.foundry.runFoundry(() => {
-            return game.data!.system;
-        })) as System;
+        return await this.game.getSystem();
     }
 }
