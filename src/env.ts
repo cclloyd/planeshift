@@ -13,3 +13,9 @@ export const dotEnv: FoundryEnv = {
     FOUNDRY_ADMIN_PASS: process.env.FOUNDRY_ADMIN_PASS,
     FOUNDRY_LOG_ENABLED: Boolean(process.env.FOUNDRY_LOG_ENABLED).valueOf(),
 };
+
+export const requireEnv = () => {
+    if (!process.env.FOUNDRY_HOST) throw new Error('Environment variable `FOUNDRY_HOST` not set.');
+    if (!process.env.FOUNDRY_USER) throw new Error('Environment variable `FOUNDRY_USER` not set.');
+    if (!process.env.FOUNDRY_PASS) throw new Error('Environment variable `FOUNDRY_PASS` not set.');
+};

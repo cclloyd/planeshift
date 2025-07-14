@@ -18,4 +18,11 @@ export class GameController {
             return game.data!.world;
         })) as World;
     }
+
+    @Get('system')
+    async getSystem() {
+        return (await this.foundry.runFoundry(() => {
+            return game.data!.system;
+        })) as System;
+    }
 }

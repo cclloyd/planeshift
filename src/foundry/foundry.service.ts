@@ -1,9 +1,26 @@
-import { HttpException, HttpStatus, Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
-import { Browser, ConsoleMessage, EvaluateFunc, Page } from 'puppeteer';
+import { Browser, ConsoleMessage, EvaluateFunc, Page, TimeoutError } from 'puppeteer';
 import { sleep } from '../util.js';
 import { FoundryStatus } from './types.js';
 import { dotEnv } from '../env.js';
+
+export class FoundryError extends Error {
+    public readonly code: string;
+    public readonly details?: string;
+
+    constructor(details: string | undefined, code: string) {
+        super(`${details}`.trim());
+        this.name = 'FoundryError';
+        this.code = code;
+        this.details = `${details}`.trim();
+
+        // Ensures the error stack traces correctly point to this class.
+        if (Error.captureStackTrace) {
+            Error.captureStackTrace(this, FoundryError);
+        }
+    }
+}
 
 @Injectable()
 export class FoundryService implements OnModuleDestroy {
@@ -11,11 +28,12 @@ export class FoundryService implements OnModuleDestroy {
     private page: Page | null = null;
     logOutput: boolean = false;
     _status: FoundryStatus = FoundryStatus.STOPPED;
-    private TIMEOUT = 300_000;
+    private TIMEOUT = 10_000;
     private loaded = false;
     private _loadStart?: Date;
     private _loadEnd?: Date;
     loadTime = 0;
+    private _lastRetry: Date | null = null;
 
     async createBrowser(): Promise<void> {
         if (!this.browser) {
@@ -47,7 +65,6 @@ export class FoundryService implements OnModuleDestroy {
     }
 
     get url() {
-        if (!dotEnv.FOUNDRY_HOST) throw new Error('Environment variable `FOUNDRY_HOST` not set.');
         const _url = new URL(dotEnv.FOUNDRY_HOST);
         return _url.href.replace(/\/(?=$|\?|#)/, '');
     }
@@ -87,9 +104,12 @@ export class FoundryService implements OnModuleDestroy {
     }
 
     async runFoundry(foundryFunction: EvaluateFunc<any>, ...args: unknown[]): Promise<any> {
-        if (this.status !== FoundryStatus.RUNNING) {
-            await this.login();
-            //     throw new HttpException(`Foundry not connected: ${this.status}`, HttpStatus.INTERNAL_SERVER_ERROR);
+        if (this.status === FoundryStatus.STOPPED || this.status === FoundryStatus.ERROR) {
+            const now = new Date();
+            if (!this._lastRetry || now.getTime() - this._lastRetry.getTime() > 30_000) {
+                this._lastRetry = now;
+                await this.login();
+            }
         }
         return await (await this.getPage()).evaluate(foundryFunction, ...args);
     }
@@ -113,6 +133,14 @@ export class FoundryService implements OnModuleDestroy {
                 waitUntil: 'networkidle2',
                 timeout: this.TIMEOUT,
             });
+
+            // Check if we reached the login page or an error page
+            const headerContent = await this.page.$eval('header#main-header', (el) => el.textContent?.trim());
+            if (headerContent === 'Critical Failure!') {
+                const details = await this.page.$eval('.error-details p', (el) => el.textContent?.trim());
+                throw new FoundryError(details, 'LOGIN_FAILURE');
+            }
+
             console.log(`FoundryVTT @ [${this.url}]: Successfully reached foundry login page`);
             await sleep(2000);
             // Enter username and password (replace with your actual credentials)
@@ -131,9 +159,15 @@ export class FoundryService implements OnModuleDestroy {
 
             this.status = FoundryStatus.LOADING;
         } catch (e) {
-            console.error(`FoundryVTT @ [${this.url}] FoundryVTT error`);
-            console.error(e);
             this.status = FoundryStatus.ERROR;
+            if (e instanceof FoundryError) {
+                console.error(`FoundryVTT @ [${this.url}]: ❌  ${e.message}`);
+            } else if (e instanceof TimeoutError) {
+                console.error(`FoundryVTT @ [${this.url}]: ❌  Unable to connect to foundry: timeout.  Make sure it's reachable from this host.`);
+            } else {
+                console.error(`FoundryVTT @ [${this.url}] FoundryVTT error`);
+                console.error(e);
+            }
         }
     }
 }
