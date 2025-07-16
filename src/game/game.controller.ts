@@ -7,6 +7,8 @@ import { ApiAuthGuard } from '../auth/api.guard.js';
 export class GameController {
     constructor(private readonly game: GameService) {}
 
+    // TODO: Add endpoint to restart game connection
+
     @Get()
     async getGame(@Req() req: Request) {
         return await this.game.getGame();

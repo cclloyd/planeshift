@@ -1,0 +1,30 @@
+
+name: Build and Push Docker Image
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Gitea Container Registry
+        run: |
+          echo "${{ secrets.REPO_PASSWORD }}" | docker login -u "${{ secrets.REPO_USERNAME }}" --password-stdin ${GITHUB_SERVER_URL}
+
+      - name: Build and push Docker image
+        run: |
+          docker build --push \
+            --build-arg UPSTREAM_REPO=https://git.cclloyd.com/${GITHUB_REPOSITORY}.git \
+            --build-arg APP_VERSION=${GITHUB_REF_NAME} \
+            --tag git.cclloyd.com/${GITHUB_REPOSITORY}:${GITHUB_SHA} \
+            --tag git.cclloyd.com/${GITHUB_REPOSITORY}:${GITHUB_REF_NAME} \
+            --tag git.cclloyd.com/${GITHUB_REPOSITORY}:latest \
+            --file Dockerfile .

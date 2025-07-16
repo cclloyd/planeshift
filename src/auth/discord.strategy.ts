@@ -10,9 +10,9 @@ export class DiscordStrategy extends PassportStrategy(Strategy, 'discord') {
         const issuer = 'https://discord.com';
         super({
             issuer: issuer,
-            clientID: dotEnv.OIDC_CLIENT_ID!,
-            clientSecret: dotEnv.OIDC_CLIENT_SECRET!,
-            callbackURL: 'http://localhost:3000/api/auth/discord/callback',
+            clientID: dotEnv.DISCORD_CLIENT_ID!,
+            clientSecret: dotEnv.DISCORD_CLIENT_SECRET!,
+            callbackURL: `${dotEnv.EXTERNAL_URL}/api/auth/discord/callback`,
             authorizationURL: `${issuer}/api/oauth2/authorize`,
             tokenURL: `${issuer}/api/oauth2/token`,
             userInfoURL: `${issuer}/api/oauth2/userinfo`,

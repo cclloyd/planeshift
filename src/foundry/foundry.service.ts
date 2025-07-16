@@ -39,7 +39,11 @@ export class FoundryService implements OnModuleDestroy {
 
     async createBrowser(): Promise<void> {
         if (!this.browser) {
-            this.browser = await puppeteer.launch({ headless: true });
+            const options =
+                process.env.NODE_ENV === 'production'
+                    ? { headless: true, args: ['--no-sandbox'], executablePath: '/usr/bin/chromium-browser' }
+                    : { headless: true, args: ['--no-sandbox'] };
+            this.browser = await puppeteer.launch(options);
         }
     }
 
@@ -135,8 +139,14 @@ export class FoundryService implements OnModuleDestroy {
         if (this.status === FoundryStatus.STARTING) throw new HttpException(`API connection is starting...`, HttpStatus.SERVICE_UNAVAILABLE);
         if (this.status === FoundryStatus.RESTARTING) throw new HttpException(`API connection is restarting...`, HttpStatus.SERVICE_UNAVAILABLE);
         if (this.status === FoundryStatus.LOADING) throw new HttpException(`API connection still loading...`, HttpStatus.SERVICE_UNAVAILABLE);
+        if (this.status === FoundryStatus.ERROR)
+            throw new HttpException(`FoundryVTT Error: ${this._error?.message ?? 'unknown error'}`, HttpStatus.SERVICE_UNAVAILABLE);
 
-        return await (await this.getPage()).evaluate(foundryFunction, ...args);
+        try {
+            return await (await this.getPage()).evaluate(foundryFunction, ...args);
+        } catch (err) {
+            throw new HttpException(`Unable to connect to foundry: ${err}`, HttpStatus.SERVICE_UNAVAILABLE);
+        }
     }
 
     async login() {
@@ -170,6 +180,17 @@ export class FoundryService implements OnModuleDestroy {
             this.logger.log(`Successfully reached foundry login page`);
             await sleep(2000);
             // Enter username and password (replace with your actual credentials)
+            for (let attempt = 1; attempt <= 10; attempt++) {
+                try {
+                    await this.page.select('select[name="userid"]', dotEnv.FOUNDRY_USER);
+                    break;
+                } catch (e) {
+                    this.logger.warn(`Attempt ${attempt} to select user failed: ${e}`);
+                    if (attempt >= 10) throw new HttpException(`Unable to select user: ${e}`, HttpStatus.SERVICE_UNAVAILABLE);
+                    else await sleep(500);
+                }
+            }
+
             await this.page.select('select[name="userid"]', dotEnv.FOUNDRY_USER);
             await this.page.type('[name="password"]', dotEnv.FOUNDRY_PASS);
             this.logger.log(`Attempting foundry game login...`);

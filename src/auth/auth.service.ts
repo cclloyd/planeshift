@@ -15,13 +15,13 @@ export class AuthService {
     ) {}
 
     async validateDiscordUser(code: string, state?: string) {
-        const REDIRECT_URI = `http://localhost:3000/api/auth/discord/callback`;
+        const REDIRECT_URI = `${dotEnv.EXTERNAL_URL}/api/auth/discord/callback`;
         const data = new URLSearchParams({
             grant_type: 'authorization_code',
             code: code,
             redirect_uri: REDIRECT_URI,
-            client_id: dotEnv.OIDC_CLIENT_ID!,
-            client_secret: dotEnv.OIDC_CLIENT_SECRET!,
+            client_id: dotEnv.DISCORD_CLIENT_ID!,
+            client_secret: dotEnv.DISCORD_CLIENT_SECRET!,
         });
         let response: Response = await fetch(`https://discord.com/api/oauth2/token`, {
             method: 'POST',
@@ -44,7 +44,7 @@ export class AuthService {
         const accessToken = responseData.access_token;
 
         // Check if user has required role defined in env vars
-        response = await fetch(`${dotEnv.DISCORD_API}/users/@me/guilds/${dotEnv.DISCORD_GUILD_ID}/member`, {
+        response = await fetch(`${dotEnv.DISCORD_API_URL}/users/@me/guilds/${dotEnv.DISCORD_GUILD_ID}/member`, {
             headers: { Authorization: `Bearer ${accessToken}` },
         });
         const member = (await response.json()) as APIGuildMember;
@@ -78,13 +78,13 @@ export class AuthService {
             sub: user._id,
             ...user.toObject(),
         };
-        return this.jwt.sign(payload);
+        return this.jwt.sign(payload, { expiresIn: '24h' });
     }
 
     async login(user: User) {
         const payload = { username: user.username, sub: user.oidc_id };
         return {
-            access_token: this.jwt.sign(payload),
+            access_token: this.jwt.sign(payload, { expiresIn: '24h' }),
         };
     }
 }

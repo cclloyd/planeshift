@@ -19,6 +19,7 @@ export class JwtAuthGuard implements CanActivate {
             const user = await this.usersService.findOne(decoded.sub as string);
             const currentTime = Math.floor(Date.now() / 1000);
             if (decoded.exp && decoded.exp < currentTime) return false;
+            if (user) request.user = user.toObject();
             return !!user;
         } catch (error) {
             return false;

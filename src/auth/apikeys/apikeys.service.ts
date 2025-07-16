@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateApikeyDto } from './dto/create-apikey.dto';
 import { UpdateApikeyDto } from './dto/update-apikey.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -27,7 +27,6 @@ export class ApiKeysService {
     }
 
     async rotate(id: string | MongooseSchema.Types.ObjectId) {
-        // TODO: Only allow proper users to access resources that have an id
         return this.apiKeyModel.updateOne({ _id: id }, { token: ApiKey.generateToken() });
     }
 

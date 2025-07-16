@@ -2,16 +2,14 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { FoundryService } from '../../foundry/foundry.service.js';
 import { PaginatedMessages } from './types.js';
 
-
 @Injectable()
 export class MessagesService {
-    constructor(private readonly foundry: FoundryService) {
-    }
+    constructor(private readonly foundry: FoundryService) {}
 
     async paginateResults(input: unknown[], page: number = 1, limit: number = 100, links: boolean = false, order: 'asc' | 'desc' = 'desc') {
         const startIndex = (page - 1) * limit;
         const endIndex = startIndex + limit;
-        const paginated = (order === 'desc' ? input : input.reverse()).slice(startIndex, endIndex);
+        const paginated = (order === 'desc' ? input.reverse() : input).slice(startIndex, endIndex);
         if (links) {
             const game = (await this.foundry.runFoundry(() => {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -32,20 +30,24 @@ export class MessagesService {
             const uniqueActors = new Set<Actor>();
             const uniqueTokens = new Set<Token>();
 
-            input.forEach((message: ChatMessage) => {
+            paginated.forEach((message: ChatMessage) => {
                 if (message.speaker?.scene) uniqueScenes.add(scenes.filter((scene) => scene._id === message.speaker.scene)[0]);
                 if (message.speaker?.scene) uniqueActors.add(actors.filter((actor) => actor._id === message.speaker.actor)[0]);
                 if (message.speaker?.scene) {
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-expect-error
-                    uniqueTokens.add(tokens.filter((token) => token._id === message.speaker.token)[0]);
+                    uniqueTokens.add(
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-expect-error
+                        tokens.filter((token) => token._id === message.speaker.token)[0],
+                    );
                 }
             });
 
             return {
-                data: paginated.reverse(),
+                data: paginated,
+                length: paginated.length,
                 total: input.length,
                 page: page,
+                totalPages: Math.ceil(input.length / limit),
                 limit: limit,
                 links: {
                     scenes: Array.from(uniqueScenes).reduce(
@@ -77,22 +79,19 @@ export class MessagesService {
         }
         return {
             data: paginated.reverse(),
+            length: paginated.length,
             total: input.length,
+            totalPages: Math.ceil(input.length / limit),
             page: page,
             limit: limit,
         } as PaginatedMessages;
     }
 
     async getAllMessages(page: number = 1, limit: number = 100, links: boolean = false, order: 'asc' | 'desc' = 'desc') {
-        return this.paginateResults(
-            (await this.foundry.runFoundry(() => {
-                return game.data!.messages!;
-            })) as ChatMessage[],
-            page,
-            limit,
-            links,
-            order,
-        );
+        const messages = (await this.foundry.runFoundry(() => {
+            return game.data!.messages!;
+        })) as ChatMessage[];
+        return this.paginateResults(messages, page, limit, links, order);
     }
 
     async getMessage(id: string) {

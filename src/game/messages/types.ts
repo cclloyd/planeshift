@@ -9,6 +9,7 @@ export interface MessageLinks {
 
 export interface PaginatedMessages {
     data: ChatMessage<any>[] | ChatMessage[];
+    length: number;
     total: number;
     page: number;
     limit: number;
