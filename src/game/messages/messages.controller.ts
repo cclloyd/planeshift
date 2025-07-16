@@ -1,6 +1,8 @@
-import { Controller, Get, Param, ParseBoolPipe, ParseEnumPipe, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, Param, ParseBoolPipe, ParseEnumPipe, ParseIntPipe, Query, UseGuards } from '@nestjs/common';
 import { MessagesService } from './messages.service.js';
+import { ApiAuthGuard } from '../../auth/api.guard.js';
 
+@UseGuards(ApiAuthGuard)
 @Controller()
 export class MessagesController {
     constructor(private readonly messages: MessagesService) {}

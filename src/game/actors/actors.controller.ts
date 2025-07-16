@@ -1,6 +1,8 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { ActorsService } from './actors.service.js';
+import { ApiAuthGuard } from '../../auth/api.guard.js';
 
+@UseGuards(ApiAuthGuard)
 @Controller()
 export class ActorsController {
     constructor(private readonly actors: ActorsService) {}

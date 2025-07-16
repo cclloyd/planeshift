@@ -27,7 +27,7 @@ export class FoundryService implements OnModuleDestroy {
     private readonly logger = new Logger(FoundryService.name);
     private browser: Browser | null = null;
     private page: Page | null = null;
-    logOutput: boolean = true;
+    logOutput: boolean = false;
     _status: FoundryStatus = FoundryStatus.STOPPED;
     private TIMEOUT = 10_000;
     private loaded = false;

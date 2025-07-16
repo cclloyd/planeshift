@@ -6,6 +6,11 @@ import { GameController } from './game.controller.js';
 import { FoundryModule } from '../foundry/foundry.module.js';
 import { RouterModule } from '@nestjs/core';
 import { ScenesModule } from './scenes/scenes.module.js';
+import { ApiKeysModule } from '../auth/apikeys/apikeysModule.js';
+import { UsersModule } from '../auth/users/users.module.js';
+import { ApiAuthGuard } from '../auth/api.guard.js';
+import { ApiKeyAuthGuard } from '../auth/apikeys/apikeys.guard.js';
+import { AuthModule } from '../auth/auth.module.js';
 
 @Module({
     imports: [
@@ -13,6 +18,9 @@ import { ScenesModule } from './scenes/scenes.module.js';
         ActorsModule,
         MessagesModule,
         ScenesModule,
+        UsersModule,
+        ApiKeysModule,
+        AuthModule,
         RouterModule.register([
             {
                 path: 'game',
@@ -35,6 +43,6 @@ import { ScenesModule } from './scenes/scenes.module.js';
         ]),
     ],
     controllers: [GameController],
-    providers: [GameService],
+    providers: [GameService, ApiAuthGuard, ApiKeyAuthGuard],
 })
 export class GameModule {}

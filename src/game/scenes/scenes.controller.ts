@@ -1,7 +1,9 @@
-import { Controller, Get, HttpException, HttpStatus, Param } from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus, Param, UseGuards } from '@nestjs/common';
 import { ScenesService } from './scenes.service.js';
 import { FoundryService } from '../../foundry/foundry.service.js';
+import { ApiAuthGuard } from '../../auth/api.guard.js';
 
+@UseGuards(ApiAuthGuard)
 @Controller()
 export class ScenesController {
     constructor(
