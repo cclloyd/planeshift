@@ -17,9 +17,6 @@ jobs:
 
       - name: Login to Gitea Container Registry
         run: |
-          echo ${GITHUB_SERVER_URL}
-          echo "${{ secrets.REPO_USERNAME }}"
-          echo "${{ secrets.REPO_PASSWORD }}"
           echo "${{ secrets.REPO_PASSWORD }}" | docker login -u "${{ secrets.REPO_USERNAME }}" --password-stdin ${GITHUB_SERVER_URL}
 
       - name: Build and push Docker image
