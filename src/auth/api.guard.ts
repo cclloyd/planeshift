@@ -48,7 +48,7 @@ export class ApiAuthGuard implements CanActivate {
         // Try the Discord passport guard
         try {
             const discordGuard = new DiscordAuthGuard();
-            // Do login first to set access_token in cookies on successful login.
+            // Do connectToFoundry first to set access_token in cookies on successful connectToFoundry.
             await discordGuard.canActivate(context);
             // Try JWT one more time to inject user now that access_token is set
             if (await this.jwtGuard.canActivate(context)) return true;

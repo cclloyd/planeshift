@@ -1,3 +1,5 @@
+import { LooseBoolean } from './util.js';
+
 export interface FoundryEnv {
     EXTERNAL_URL: string;
     FOUNDRY_HOST: string;
@@ -33,7 +35,7 @@ export const dotEnv: FoundryEnv = {
     FOUNDRY_USER: process.env.FOUNDRY_USER!,
     FOUNDRY_PASS: process.env.FOUNDRY_PASS!,
     FOUNDRY_ADMIN_PASS: process.env.FOUNDRY_ADMIN_PASS,
-    FOUNDRY_LOG_ENABLED: Boolean(process.env.FOUNDRY_LOG_ENABLED).valueOf(),
+    FOUNDRY_LOG_ENABLED: new LooseBoolean(process.env.FOUNDRY_LOG_ENABLED).valueOf(),
     OIDC_ISSUER: process.env.OIDC_ISSUER,
     AUTH_METHOD: process.env.AUTH_METHOD ?? 'discord',
     OIDC_CLIENT_ID: process.env.OIDC_CLIENT_ID,

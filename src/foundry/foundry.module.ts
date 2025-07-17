@@ -10,7 +10,7 @@ export class FoundryModule implements OnModuleInit, OnModuleDestroy {
 
     async onModuleInit() {
         // Login, but don't wait for it to finish logging in to finish initializing the API.
-        void this.foundryService.login();
+        void this.foundryService.connectToFoundry();
     }
 
     async onModuleDestroy() {

@@ -41,8 +41,9 @@ export class FoundryService implements OnModuleDestroy {
         if (!this.browser) {
             const options =
                 process.env.NODE_ENV === 'production'
-                    ? { headless: true, args: ['--no-sandbox'], executablePath: '/usr/bin/chromium-browser' }
+                    ? { headless: true, args: ['--no-sandbox'], executablePath: '/usr/bin/chromium' }
                     : { headless: true, args: ['--no-sandbox'] };
+            this.logger.log(`Starting browser with options: ${JSON.stringify(options)}`);
             this.browser = await puppeteer.launch(options);
         }
     }
@@ -66,6 +67,7 @@ export class FoundryService implements OnModuleDestroy {
 
     async getBrowser(): Promise<Browser> {
         if (!this.browser) {
+            this.logOutput = dotEnv.FOUNDRY_LOG_ENABLED;
             await this.createBrowser();
         }
         return this.browser!;
@@ -109,6 +111,9 @@ export class FoundryService implements OnModuleDestroy {
                 this.logger.log(`${prefix}${line}`);
             }
         }
+        if (msg.text().startsWith('[Intercepted WebSocket connection attempt]')) {
+            this.logger.warn(msg.text());
+        }
         if (msg.text().includes('The game world is shutting down')) {
             this.status = FoundryStatus.STOPPED;
             this._error = new FoundryError(`FoundryVTT game has been shut down.  Re-launch the game to access the API.`, 'SERVER_DISCONNECTED');
@@ -118,6 +123,10 @@ export class FoundryService implements OnModuleDestroy {
             this.status = FoundryStatus.ERROR;
             this._error = new FoundryError(`FoundryVTT server connection lost.  Attempting to reestablish.`, 'SERVER_DISCONNECTED');
             this.logger.log(`❌  FoundryVTT disconnected from game.`);
+        }
+        if (msg.text().includes('Foundry VTT | Connected to server socket using session')) {
+            if (this.page!.url() === `${this.url}/join`) void this.login();
+            // TODO: See if this trigger can be used on the other page to detect when fully loaded, or when `game` is populated at least.
         }
         if (msg.text().includes('Foundry VTT | Prepared World Documents in')) {
             this.status = FoundryStatus.RUNNING;
@@ -132,13 +141,14 @@ export class FoundryService implements OnModuleDestroy {
             const now = new Date();
             if (!this._lastRetry || now.getTime() - this._lastRetry.getTime() > 30_000) {
                 this._lastRetry = now;
-                await this.login();
+                await this.connectToFoundry();
             }
         }
 
         if (this.status === FoundryStatus.STARTING) throw new HttpException(`API connection is starting...`, HttpStatus.SERVICE_UNAVAILABLE);
         if (this.status === FoundryStatus.RESTARTING) throw new HttpException(`API connection is restarting...`, HttpStatus.SERVICE_UNAVAILABLE);
         if (this.status === FoundryStatus.LOADING) throw new HttpException(`API connection still loading...`, HttpStatus.SERVICE_UNAVAILABLE);
+        if (this.status === FoundryStatus.CONNECTING) throw new HttpException(`API connection still connecting...`, HttpStatus.SERVICE_UNAVAILABLE);
         if (this.status === FoundryStatus.ERROR)
             throw new HttpException(`FoundryVTT Error: ${this._error?.message ?? 'unknown error'}`, HttpStatus.SERVICE_UNAVAILABLE);
 
@@ -149,7 +159,20 @@ export class FoundryService implements OnModuleDestroy {
         }
     }
 
-    async login() {
+    handleFoundryError(e: any) {
+        this.status = FoundryStatus.ERROR;
+        this._error = e as Error;
+        if (e instanceof FoundryError) {
+            this.logger.error(`❌  ${e.message}`);
+        } else if (e instanceof TimeoutError) {
+            this.logger.error(`❌  Unable to connect to foundry: timeout.  Make sure it's reachable from this host.`);
+        } else {
+            this.logger.error(`FoundryVTT error`);
+            this.logger.error(e);
+        }
+    }
+
+    async connectToFoundry() {
         try {
             this.loadTime = 0;
             this._loadStart = new Date();
@@ -164,13 +187,13 @@ export class FoundryService implements OnModuleDestroy {
                 window.localStorage.setItem('core.noCanvas', 'true');
             });
 
-            // Navigate to the Foundry VTT login page
+            // Navigate to the Foundry VTT connectToFoundry page
             await this.page.goto(`${this.url}/join`, {
                 waitUntil: 'networkidle2',
                 timeout: this.TIMEOUT,
             });
 
-            // Check if we reached the login page or an error page
+            // Check if we reached the connectToFoundry page or an error page
             const headerContent = await this.page.$eval('header#main-header', (el) => el.textContent?.trim());
             if (headerContent === 'Critical Failure!') {
                 const details = await this.page.$eval('.error-details p', (el) => el.textContent?.trim());
@@ -178,7 +201,17 @@ export class FoundryService implements OnModuleDestroy {
             }
 
             this.logger.log(`Successfully reached foundry login page`);
-            await sleep(2000);
+            this.status = FoundryStatus.CONNECTING;
+            // Next step of login will be triggered on console message that confirms the websocket connected
+        } catch (e) {
+            this.handleFoundryError(e);
+        }
+    }
+
+    async login() {
+        if (!this.page) throw new Error('Connect to foundry first before attempting to call login()');
+        await sleep(1000);
+        try {
             // Enter username and password (replace with your actual credentials)
             for (let attempt = 1; attempt <= 10; attempt++) {
                 try {
@@ -186,18 +219,20 @@ export class FoundryService implements OnModuleDestroy {
                     break;
                 } catch (e) {
                     this.logger.warn(`Attempt ${attempt} to select user failed: ${e}`);
-                    if (attempt >= 10) throw new HttpException(`Unable to select user: ${e}`, HttpStatus.SERVICE_UNAVAILABLE);
-                    else await sleep(500);
+                    if (attempt >= 10) {
+                        console.log(await this.page.content());
+                        throw new HttpException(`Unable to select user: ${e}`, HttpStatus.SERVICE_UNAVAILABLE);
+                    } else await sleep(1000);
                 }
             }
 
             await this.page.select('select[name="userid"]', dotEnv.FOUNDRY_USER);
             await this.page.type('[name="password"]', dotEnv.FOUNDRY_PASS);
             this.logger.log(`Attempting foundry game login...`);
-            // Click the login button
+            // Click the connectToFoundry button
             await this.page.click('button[name="join"]');
 
-            // Wait for navigation to the main page after login
+            // Wait for navigation to the main page after connectToFoundry
             await this.page.waitForNavigation({
                 waitUntil: 'networkidle2',
                 timeout: this.TIMEOUT,
@@ -206,16 +241,7 @@ export class FoundryService implements OnModuleDestroy {
 
             this.status = FoundryStatus.LOADING;
         } catch (e) {
-            this.status = FoundryStatus.ERROR;
-            this._error = e as Error;
-            if (e instanceof FoundryError) {
-                this.logger.error(`❌  ${e.message}`);
-            } else if (e instanceof TimeoutError) {
-                this.logger.error(`❌  Unable to connect to foundry: timeout.  Make sure it's reachable from this host.`);
-            } else {
-                this.logger.error(`FoundryVTT error`);
-                this.logger.error(e);
-            }
+            this.handleFoundryError(e);
         }
     }
 }

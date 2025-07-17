@@ -40,7 +40,7 @@ export class OpenIdConnectStrategy extends PassportStrategy(Strategy, 'openidcon
             refreshToken,
         };
 
-        // TODO: Compare returned user against Users in database and connect/login
+        // TODO: Compare returned user against Users in database and connect/connectToFoundry
 
         return user;
     }

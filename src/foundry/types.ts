@@ -1,9 +1,10 @@
 export enum FoundryStatus {
     STOPPED = 0,
     STARTING = 1,
-    LOADING = 2,
-    RUNNING = 3,
-    STOPPING = 4,
-    ERROR = 5,
-    RESTARTING = 6,
+    CONNECTING = 2,
+    LOADING = 3,
+    RUNNING = 4,
+    STOPPING = 5,
+    ERROR = 6,
+    RESTARTING = 7,
 }
