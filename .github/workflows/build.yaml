@@ -1,5 +1,8 @@
 # TODO: not triggering on gitea mirror, only on direct push
 name: Build and Push Docker Image
+permissions:
+  contents: read
+  packages: write
 
 on:
   push:
@@ -11,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      -
       - uses: actions/checkout@v4
       - name: Build the Docker image
         run: |
