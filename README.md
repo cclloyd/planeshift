@@ -79,7 +79,7 @@ Most of the API is configured via environment variables. A `.env` file will be l
 
 | Environment Variable    | Description                                                                                                          | Default / Example Value |
 |-------------------------|----------------------------------------------------------------------------------------------------------------------|-------------------------|
-| EXTERNAL_URL            | Public facing URL of the container.  Required for the auth callbacks to work properly.                               | http://localhost:3000   |
+| EXTERNAL_URL            | Public facing URL of the container.  Required for the auth callbacks to work properly.                               | `http://localhost:3000` |
 | SECRET_KEY              | Secret key for sessions/authentication                                                                               | `null`                  |
 | MONGO_HOST              | MongoDB server hostname or IP address                                                                                | `localhost`             |
 | MONGO_PORT              | MongoDB server port                                                                                                  | `27017`                 |
