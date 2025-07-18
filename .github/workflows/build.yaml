@@ -1,4 +1,4 @@
-
+# TODO: not triggering on gitea mirror, only on direct push
 name: Build and Push Docker Image
 
 on:
@@ -7,24 +7,17 @@ on:
       - 'v*.*.*'
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Login to Github Container Registry
-        run: |
-          echo "${{ secrets.REPO_PASSWORD }}" | docker login -u "${{ secrets.REPO_USERNAME }}" --password-stdin ${GITHUB_SERVER_URL}
-
-      - name: Build and push Docker image
+      - uses: actions/checkout@v4
+      - name: Build the Docker image
         run: |
           docker build --push \
             --build-arg UPSTREAM_REPO=https://github.com/${GITHUB_REPOSITORY}.git \
             --build-arg APP_VERSION=${GITHUB_REF_NAME} \
-            --tag git.cclloyd.com/${GITHUB_REPOSITORY}:${GITHUB_SHA} \
-            --tag git.cclloyd.com/${GITHUB_REPOSITORY}:${GITHUB_REF_NAME} \
-            --tag git.cclloyd.com/${GITHUB_REPOSITORY}:latest \
+            --tag ${GITHUB_REPOSITORY}:${GITHUB_SHA} \
+            --tag ${GITHUB_REPOSITORY}:${GITHUB_REF_NAME} \
+            --tag ${GITHUB_REPOSITORY}:latest \
             --file Dockerfile .
