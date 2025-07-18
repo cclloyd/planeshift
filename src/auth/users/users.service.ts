@@ -28,6 +28,10 @@ export class UsersService {
         return this.userModel.findOne(query);
     }
 
+    findOneByDiscord(id: string) {
+        return this.userModel.findOne({ discord_id: id });
+    }
+
     findOneByOidc(id: string) {
         return this.userModel.findOne({ oidc_id: id });
     }

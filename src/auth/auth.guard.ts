@@ -2,9 +2,6 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { JwtService } from '@nestjs/jwt';
 import { jwtConstants } from './constants.js';
 import { Request } from 'express';
-import { AuthGuard } from '@nestjs/passport';
-
-export const DiscordAuthGuard = AuthGuard('discord');
 
 @Injectable()
 export class CustomAuthGuard implements CanActivate {

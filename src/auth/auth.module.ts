@@ -25,7 +25,14 @@ import { ApiKeyAuthGuard } from './apikeys/apikeys.guard.js';
         }),
     ],
     controllers: [AuthController],
-    providers: [AuthService, JwtAuthGuard, ApiAuthGuard, ApiKeyAuthGuard, dotEnv.AUTH_METHOD === 'oidc' ? OpenIdConnectStrategy : DiscordStrategy],
+    providers: [
+        AuthService,
+        JwtAuthGuard,
+        ApiAuthGuard,
+        ApiKeyAuthGuard,
+        ...(dotEnv.OIDC_ISSUER ? [OpenIdConnectStrategy] : []),
+        ...(dotEnv.DISCORD_CLIENT_ID ? [DiscordStrategy] : []),
+    ],
     exports: [AuthService, JwtAuthGuard, ApiAuthGuard, ApiKeyAuthGuard],
 })
 export class AuthModule {}

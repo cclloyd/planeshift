@@ -1,8 +1,8 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ApiKeyAuthGuard } from './apikeys/apikeys.guard.js';
-import { DiscordAuthGuard } from './auth.guard.js';
 import { JwtAuthGuard } from './jwt.guard.js';
 import { dotEnv } from '../env.js';
+import { AuthGuard } from '@nestjs/passport';
 
 /**
  * A composite guard that combines multiple authentication methods.
@@ -50,16 +50,32 @@ export class ApiAuthGuard implements CanActivate {
             /* empty */
         }
 
-        // Try the Discord passport guard
-        try {
-            const discordGuard = new DiscordAuthGuard();
-            // Do connectToFoundry first to set access_token in cookies on successful connectToFoundry.
-            await discordGuard.canActivate(context);
-            // Try JWT one more time to inject user now that access_token is set
-            if (await this.jwtGuard.canActivate(context)) return true;
-        } catch {
-            /* empty */
-        }
+        if (dotEnv.DISCORD_CLIENT_ID)
+            // Try the Discord passport guard
+            try {
+                const c = AuthGuard('discord');
+                const guard = new c();
+                // Do connectToFoundry first to set access_token in cookies on successful connectToFoundry.
+                await guard.canActivate(context);
+                // Try JWT one more time to inject user now that access_token is set
+                if (await this.jwtGuard.canActivate(context)) return true;
+            } catch {
+                /* empty */
+            }
+
+        if (dotEnv.OIDC_CLIENT_ID)
+            // Try the OIDC passport guard
+            try {
+                const c = AuthGuard('openidconnect');
+                const guard = new c();
+
+                // Do connectToFoundry first to set access_token in cookies on successful connectToFoundry.
+                await guard.canActivate(context);
+                // Try JWT one more time to inject user now that access_token is set
+                if (await this.jwtGuard.canActivate(context)) return true;
+            } catch {
+                /* empty */
+            }
 
         throw new UnauthorizedException();
     }

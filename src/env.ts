@@ -40,7 +40,7 @@ export const dotEnv: FoundryEnv = {
     OIDC_ISSUER: process.env.OIDC_ISSUER,
     OIDC_CLIENT_ID: process.env.OIDC_CLIENT_ID,
     OIDC_CLIENT_SECRET: process.env.OIDC_CLIENT_SECRET,
-    OIDC_EXTRA_SCOPES: process.env.OIDC_EXTRA_SCOPES ?? [],
+    OIDC_EXTRA_SCOPES: process.env.OIDC_EXTRA_SCOPES ? process.env.OIDC_EXTRA_SCOPES.split(' ') : [],
     OIDC_USERNAME_ATTRIBUTE: process.env.OIDC_USERNAME_ATTRIBUTE,
     SECRET_KEY: process.env.SECRET_KEY!,
     MONGO_HOST: process.env.MONGO_HOST ?? 'localhost',

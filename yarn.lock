@@ -1851,6 +1851,13 @@
   dependencies:
     "@types/node" "*"
 
+"@types/openid-client@^3.7.0":
+  version "3.7.0"
+  resolved "https://registry.yarnpkg.com/@types/openid-client/-/openid-client-3.7.0.tgz#8406e12798d16083df09cc3625973f5a00dd57fa"
+  integrity sha512-hW+QbAeUyfUHABwUjUECOcv56Mf5tN29xK3GPN7wy3R3XfIQdkm37XELA4wbe2RNG9GYUpN8l2ytfoW05XmpgQ==
+  dependencies:
+    openid-client "*"
+
 "@types/passport-jwt@^4.0.1":
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/@types/passport-jwt/-/passport-jwt-4.0.1.tgz#080fbe934fb9f6954fb88ec4cdf4bb2cc7c4d435"
@@ -4847,6 +4854,11 @@ jest@^29.7.0:
     import-local "^3.0.2"
     jest-cli "^29.7.0"
 
+jose@^6.0.11:
+  version "6.0.12"
+  resolved "https://registry.yarnpkg.com/jose/-/jose-6.0.12.tgz#56253d94d46bd784addc4bde3691c323552fe7e4"
+  integrity sha512-T8xypXs8CpmiIi78k0E+Lk7T2zlK4zDyg+o1CZ4AkOHgDg98ogdP2BeZ61lTFKFyoEwJ9RgAgN+SdM3iPgNonQ==
+
 js-tokens@^4.0.0:
   version "4.0.0"
   resolved "https://registry.npmjs.org/js-tokens/-/js-tokens-4.0.0.tgz"
@@ -5407,6 +5419,11 @@ npm-run-path@^4.0.1:
   dependencies:
     path-key "^3.0.0"
 
+oauth4webapi@^3.5.4:
+  version "3.6.0"
+  resolved "https://registry.yarnpkg.com/oauth4webapi/-/oauth4webapi-3.6.0.tgz#839a4520c59f82fdc84d129ce308562646aa3fbc"
+  integrity sha512-OwXPTXjKPOldTpAa19oksrX9TYHA0rt+VcUFTkJ7QKwgmevPpNm9Cn5vFZUtIo96FiU6AfPuUUGzoXqgOzibWg==
+
 oauth@0.10.x:
   version "0.10.2"
   resolved "https://registry.yarnpkg.com/oauth/-/oauth-0.10.2.tgz#fd7139b0ce1a1037bd11fa4e236afc588132418c"
@@ -5447,6 +5464,14 @@ onetime@^5.1.0, onetime@^5.1.2:
   integrity sha512-kbpaSSGJTWdAY5KPVeMOKXSrPtr8C8C7wodJbcsd51jRnmD+GZu8Y0VoU6Dm5Z4vWr0Ig/1NKuWRKf7j5aaYSg==
   dependencies:
     mimic-fn "^2.1.0"
+
+openid-client@*:
+  version "6.6.2"
+  resolved "https://registry.yarnpkg.com/openid-client/-/openid-client-6.6.2.tgz#8b50685491e7a23cf6553a68ceeef1b2ee279f98"
+  integrity sha512-Xya5TNMnnZuTM6DbHdB4q0S3ig2NTAELnii/ASie1xDEr8iiB8zZbO871OWBdrw++sd3hW6bqWjgcmSy1RTWHA==
+  dependencies:
+    jose "^6.0.11"
+    oauth4webapi "^3.5.4"
 
 optionator@^0.9.3:
   version "0.9.4"

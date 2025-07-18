@@ -60,7 +60,7 @@ export class AuthService {
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const userInfo: APIUser = await response.json();
-        let user = await this.users.findOneByOidc(userInfo.id);
+        let user = await this.users.findOneByDiscord(userInfo.id);
         if (!user) {
             user = await this.users.create({
                 username: userInfo.username,
@@ -78,7 +78,7 @@ export class AuthService {
             sub: user._id,
             ...user.toObject(),
         };
-        return this.jwt.sign(payload, { expiresIn: '24h' });
+        return this.jwt.sign(payload, { expiresIn: '7d' });
     }
 
     async login(user: User) {
