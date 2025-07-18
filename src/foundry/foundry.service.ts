@@ -208,14 +208,31 @@ export class FoundryService implements OnModuleDestroy {
         }
     }
 
+    async selectByVisibleText(selector: string, text: string) {
+        await this.page!.evaluate(
+            (selector, text) => {
+                const select = document.querySelector(selector) as HTMLSelectElement;
+                if (!select) return;
+                const option = Array.from(select.options).find((opt) => opt.text.trim() === text);
+                if (option) {
+                    select.value = option.value;
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            },
+            selector,
+            text,
+        );
+    }
+
     async login() {
         if (!this.page) throw new Error('Connect to foundry first before attempting to call login()');
         await sleep(1000);
+        // Loop around for a few seconds to try and do it as soon as it loads, but not to wait unnecessarily long.
         try {
             // Enter username and password (replace with your actual credentials)
             for (let attempt = 1; attempt <= 10; attempt++) {
                 try {
-                    await this.page.select('select[name="userid"]', dotEnv.FOUNDRY_USER);
+                    await this.selectByVisibleText('select[name="userid"]', 'APIUser');
                     break;
                 } catch (e) {
                     this.logger.warn(`Attempt ${attempt} to select user failed: ${e}`);
@@ -226,7 +243,6 @@ export class FoundryService implements OnModuleDestroy {
                 }
             }
 
-            await this.page.select('select[name="userid"]', dotEnv.FOUNDRY_USER);
             await this.page.type('[name="password"]', dotEnv.FOUNDRY_PASS);
             this.logger.log(`Attempting foundry game login...`);
             // Click the connectToFoundry button

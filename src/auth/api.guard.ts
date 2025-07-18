@@ -2,6 +2,7 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { ApiKeyAuthGuard } from './apikeys/apikeys.guard.js';
 import { DiscordAuthGuard } from './auth.guard.js';
 import { JwtAuthGuard } from './jwt.guard.js';
+import { dotEnv } from '../env.js';
 
 /**
  * A composite guard that combines multiple authentication methods.
@@ -30,6 +31,10 @@ export class ApiAuthGuard implements CanActivate {
      */
     async canActivate(context: ExecutionContext): Promise<boolean> {
         // Note: We catch errors here because they throw some kind of unauthorized error usually.
+
+        if (dotEnv.AUTH_METHOD === 'disabled') {
+            return true;
+        }
 
         // Try API guard
         try {

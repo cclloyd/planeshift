@@ -1,7 +1,13 @@
 import { LooseBoolean } from './util.js';
+import 'dotenv/config';
 
 export interface FoundryEnv {
     EXTERNAL_URL: string;
+    MONGO_HOST: string;
+    MONGO_PORT: number;
+    MONGO_USER: string;
+    MONGO_PASS: string;
+    MONGO_DB: string;
     FOUNDRY_HOST: string;
     FOUNDRY_USER: string;
     FOUNDRY_PASS: string;
@@ -10,16 +16,10 @@ export interface FoundryEnv {
     OIDC_ISSUER?: string;
     OIDC_CLIENT_ID?: string;
     OIDC_CLIENT_SECRET?: string;
-    OIDC_CALLBACK_URL?: string;
     OIDC_EXTRA_SCOPES?: string | string[];
     OIDC_USERNAME_ATTRIBUTE?: string;
     SECRET_KEY: string;
     AUTH_METHOD: string;
-    MONGO_HOST: string;
-    MONGO_PORT: number;
-    MONGO_DB: string;
-    MONGO_USER: string;
-    MONGO_PASS: string;
     DISCORD_CLIENT_ID?: string;
     DISCORD_CLIENT_SECRET?: string;
     DISCORD_GUILD_ID?: string;
@@ -32,15 +32,14 @@ export interface FoundryEnv {
 export const dotEnv: FoundryEnv = {
     EXTERNAL_URL: process.env.EXTERNAL_URL ?? 'http://localhost:3000',
     FOUNDRY_HOST: process.env.FOUNDRY_HOST!,
-    FOUNDRY_USER: process.env.FOUNDRY_USER!,
+    FOUNDRY_USER: process.env.FOUNDRY_USER ?? 'APIUser',
     FOUNDRY_PASS: process.env.FOUNDRY_PASS!,
     FOUNDRY_ADMIN_PASS: process.env.FOUNDRY_ADMIN_PASS,
     FOUNDRY_LOG_ENABLED: new LooseBoolean(process.env.FOUNDRY_LOG_ENABLED).valueOf(),
-    OIDC_ISSUER: process.env.OIDC_ISSUER,
     AUTH_METHOD: process.env.AUTH_METHOD ?? 'discord',
+    OIDC_ISSUER: process.env.OIDC_ISSUER,
     OIDC_CLIENT_ID: process.env.OIDC_CLIENT_ID,
     OIDC_CLIENT_SECRET: process.env.OIDC_CLIENT_SECRET,
-    OIDC_CALLBACK_URL: process.env.OIDC_CALLBACK_URL,
     OIDC_EXTRA_SCOPES: process.env.OIDC_EXTRA_SCOPES ?? [],
     OIDC_USERNAME_ATTRIBUTE: process.env.OIDC_USERNAME_ATTRIBUTE,
     SECRET_KEY: process.env.SECRET_KEY!,
@@ -55,20 +54,22 @@ export const dotEnv: FoundryEnv = {
     DISCORD_ROLE_ID: process.env.DISCORD_ROLE_ID,
     DISCORD_GM_ROLE_ID: process.env.DISCORD_GM_ROLE_ID,
     DISCORD_ADMIN_ROLE_ID: process.env.DISCORD_ADMIN_ROLE_ID,
-    DISCORD_API_URL: process.env.DISCORD_API ?? 'https://discord.com/api/v10',
+    DISCORD_API_URL: process.env.DISCORD_API_URL ?? 'https://discord.com/api/v10',
 };
 
 export const requireEnv = () => {
     if (!process.env.SECRET_KEY) throw new Error('Environment variable `SECRET_KEY` not set. Generate one by running `openssl rand -base64 48`');
 
     if (!process.env.FOUNDRY_HOST) throw new Error('Environment variable `FOUNDRY_HOST` not set.');
-    if (!process.env.FOUNDRY_USER) throw new Error('Environment variable `FOUNDRY_USER` not set.');
     if (!process.env.FOUNDRY_PASS) throw new Error('Environment variable `FOUNDRY_PASS` not set.');
 
     if (process.env.AUTH_METHOD) {
-        if (!['oidc', 'local', 'discord'].includes(process.env.AUTH_METHOD)) {
-            throw new Error('Environment variable `AUTH_METHOD` must be one of: [oidc, local, discord] if set.');
+        if (!['oidc', 'local', 'discord', 'disabled'].includes(process.env.AUTH_METHOD)) {
+            throw new Error('Environment variable `AUTH_METHOD` must be one of: [oidc, discord, disabled] if set.');
         }
+    }
+    if (process.env.AUTH_METHOD === 'disabled') {
+        console.warn('Environment variable `AUTH_METHOD` is set to `disabled`. API will be fully visible to anyone that can access it.');
     }
 
     if (process.env.AUTH_METHOD === 'discord') {
@@ -91,5 +92,10 @@ export const requireEnv = () => {
             console.warn(
                 'Environment variable `DISCORD_GM_ROLE_ID` is recommended when AUTH_PROVIDER is set to discord, otherwise all players will be treated as having GM access to game resources.',
             );
+    }
+
+    if (process.env.AUTH_METHOD === 'oidc') {
+        if (!process.env.OIDC_CLIENT_ID) throw new Error('Environment variable `OIDC_CLIENT_ID` is required when AUTH_PROVIDER is set to oidc.');
+        if (!process.env.OIDC_CLIENT_SECRET) throw new Error('Environment variable `OIDC_CLIENT_SECRET` is required when AUTH_PROVIDER is set to oidc.');
     }
 };

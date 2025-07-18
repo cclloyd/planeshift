@@ -1,30 +1,42 @@
 services:
   fvttapi:
     container_name: fvttapi
-    image: fvttapidev
+    image: fvttapi
     ports:
       - "3000:3000"
-      - "9222:9222"
-#    command: ['sleep', '300']
-#    volumes:
-#      - /data/swdev:/data
     environment:
-      MONGO_HOST: 10.0.0.25
-      MONGO_DB: fvttapidev
-      MONGO_USER: fvttapidev
-      MONGO_PASS: 'fvttapidev'
-      AUTH_STRATEGY: 'discord'
-      DISCORD_GUILD_ID: '342165983642910720'
-      DISCORD_ROLE_ID: '380468763985838081'
-      DISCORD_GM_ROLE_ID: '380468748815040516'
-      DISCORD_CLIENT_ID: '713381169349263361'
-      DISCORD_CLIENT_SECRET: 'OyknwjsoL86TO2-ZjLtMNFKMx8gdmFoK'
-      SECRET_KEY: '71bca9b30ca9b28e068fd749cd40050c316056aabc38dba65396c9c0e66d450a'
-      FOUNDRY_HOST: 'https://dev.cclloyd.com/v12'
-      FOUNDRY_USER: 'dqAHANgKXUkd2Kfi'
-      FOUNDRY_PASS: 'Slipspace'
-      FOUNDRY_LOG_ENABLED: 'false'
-      # FOUNDRY_ADMIN_PASS: 'CHANGEME'  # Optional.  Gives additional control over restarting and managing the game.
+      SECRET_KEY: 'CHANGEME'
+      # MONGO_HOST: 'localhost'
+      # MONGO_PASS: '27017'
+      # MONGO_DB: 'fvttapi'
+      MONGO_USER: 'fvttapi'
+      MONGO_PASS: 'CHANGEME'
+
+      # Foundry settings
+      FOUNDRY_HOST: 'https://dnd.example.com'
+      FOUNDRY_USER: 'APIUser'
+      FOUNDRY_PASS: 'CHANGEME'
+      # FOUNDRY_ADMIN_PASS: '' # Optional.  Gives additional control over restarting and managing the game.
+      # FOUNDRY_LOG_ENABLED: 'false'
+
+      # AUTH_STRATEGY: 'discord' # discord, oidc, disabled
+
+      # Discord auth settings
+      DISCORD_CLIENT_ID: 'CHANGEME'
+      DISCORD_CLIENT_SECRET: 'CHANGEME'
+      # DISCORD_GUILD_ID: ''
+      # DISCORD_ROLE_ID: ''
+      # DISCORD_GM_ROLE_ID: '' # (if omitted, all users will be considered GMs
+      # DISCORD_ADMIN_ROLE_ID: 'ADMIN_ROLE_ID (if omitted, all users will be considered admins in the API, bypassing all permission restrictions.)'
+
+      # OIDC Auth settings
+      # OIDC_CLIENT_ID: ''
+      # OIDC_CLIENT_SECRET: ''
+      # OIDC_EXTRA_SCOPES: ''
+      # OIDC_USERNAME_ATTRIBUTE: ''
+      # OIDC_ROLE_CLAIM: ''
+      # OIDC_GM_ROLE: ''
+      # OIDC_ADMIN_ROLE: ''
 
 #  mongo:
 #    container_name: mongo
@@ -34,18 +46,8 @@ services:
 #    volumes:
 #      - mongo-data:/data/db
 #    environment:
-#      MONGO_INITDB_ROOT_USERNAME: 'shittywizard'
+#      MONGO_INITDB_ROOT_USERNAME: 'fvttapi'
 #      MONGO_INITDB_ROOT_PASSWORD: 'CHANGEME'
 
-#  redis:
-#    container_name: redis
-#    image: redis
-#    ports:
-#      - "6379:6379"
-#    volumes:
-#      - redis-data:/data
-#    command: ["redis-server", "--appendonly", "yes"]
-
-volumes:
-  mongo-data:
-  redis-data:
+#volumes:
+#  mongo-data:

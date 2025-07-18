@@ -1,31 +1,117 @@
+
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+  <a href="https://nestjs.com/" target="blank"><img src="https://git.cclloyd.com/cclloyd/foundryvtt-api/raw/branch/main/resources/fvttapilogo.webp" width="120" alt="Nest Logo" /></a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+<p align="center">A REST API to make a FoundryVTT instance more accessible outside of the game.</p>
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
+<p align="center">
+    <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
 </p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+FoundryVTT API is a REST API layer that connects to a running FoundryVTT instance, allowing you to access the game data in other apps easily.
+
+Discord and OIDC authentication included by default, making it relatively simple to allow only your game users access to the API.
+
+For the API to be able to connect to your instance, you will need to create a player in the game, preferably called `APIUser` (case sensitive) and a password. You *can* use your existing GM account if you wish, but you and the API can't be logged in at the same time.  For this reason, it's recommended to create a dedicated user for the API.
+
+### Key Features
+- OIDC/Discord authentication
+- API Keys for external services to access the API
+- Supports FoundryVTT v12, possibly other versions (untested)
+- Full docker support
+
+# Deployment
+
+## Docker (recommended)
+
+A mostly ready to go [docker-compose.yml](./docker-compose.yml) file is provided.
+
+- Generate a secret key by running `docker compose run --rm fvttapi gen_secret`. 
+- Fill in required env vars in compose file. You will need:
+  - The Secret key we just generated.
+  - A URL that the API will be accessed by.  This will be the only hostname that will be able to authenticate with OIDC.
+    - API keys can still be used with any URL.
+  - A valid database connection.  A mongo sample is provided if you want to just host one locally.
+    - If you use a preexisting mongo instance, you will need to create a user and give them access to a database for the API.
+  - A valid foundry instance URL and password.  The default username is APIUser.
+  - Valid setup for an auth strategy.
+- Run `docker compose up -d`.
+
+If all is set up properly, you should be able to access it at whatever EXTERNAL_URL you set.
+
+## NodeJS
+
+If you want to just run by cloning this repo, you can run `yarn build`, then `yarn start:prod:local` to run the production build. A `.env` file can be provided in the current directory to load environment variables.
+
+## Authentication
+
+### Discord
+
+- Go to the [Discord developer portal](https://discord.com/developers/applications)
+- Create an application.  Name it whatever you wish, `FoundryAPI` for example.
+- Click on your new application and go to OAuth2
+- Take note of your client ID and secret to copy into `DISCORD_CLIENT_ID` and `DISCORD_CLIENT_SECRET` env vars.
+- Add a redirect URL.  This is in the format of `${EXTERNAL_URL}/api/auth/discord/callback`
+- Be sure to save any changes.
+
+To get IDs for your server and roles, go to `User Settings > Advanced > Developer Mode` and switch it to true. This adds a `Copy ID` menu to a lot of discord items.
+
+- Right click on your server and copy the ID and put it in `DISCORD_GUILD_ID`
+- Click on a user with the role you want, then right click the role in the popup panel and paste it into one or more of:
+  - `DISCORD_ROLE_ID`: This is recommended but not required. Without it, anyone in the server will be able to login to your API instance.
+  - `DISCORD_GM_ROLE_ID`: Without this, anyone who authenticates will be considered a GM.
+  - `DISCORD_ADMIN_ROLE_ID`: Without this, anyone who authenticates will be considered an admin in the API. Admins bypass all restrictions.
+  - You can use the same value for multiple of these variables.
+
+### OpenID Connect
+
+Generic OIDC is supported thanks to [passport-openidconnect](https://www.npmjs.com/package/passport-openidconnect). This has been fully tested with `Keycloak` as a provider, but should work with any compliant OIDC provider.
+
+- You will need a client ID and secret.
+- You may need to adjust your scopes and role claim to suit your needs.
+
+## Full Configuration
+
+Most of the API is configured via environment variables. A `.env` file will be loaded automatically if found.
+
+| Environment Variable    | Description                                                                                                          | Default / Example Value |
+|-------------------------|----------------------------------------------------------------------------------------------------------------------|-------------------------|
+| EXTERNAL_URL            | Public facing URL of the container.  Required for the auth callbacks to work properly.                               | http://localhost:3000   |
+| SECRET_KEY              | Secret key for sessions/authentication                                                                               | `null`                  |
+| MONGO_HOST              | MongoDB server hostname or IP address                                                                                | `localhost`             |
+| MONGO_PORT              | MongoDB server port                                                                                                  | `27017`                 |
+| MONGO_USER              | MongoDB username                                                                                                     | `fvttapi`               |
+| MONGO_PASS              | MongoDB password                                                                                                     | `CHANGEME`              |
+| MONGO_DB                | MongoDB database name                                                                                                | `fvttapi`               |
+| FOUNDRY_HOST            | Foundry VTT instance URL                                                                                             | `null`                  |
+| FOUNDRY_USER            | Username to log into Foundry VTT game                                                                                | `null`                  |
+| FOUNDRY_PASS            | Password to log into Foundry VTT game                                                                                | `null`                  |
+| FOUNDRY_ADMIN_PASS      | (Optional) Admin password for extra Foundry instance management                                                      | `null`                  |
+| FOUNDRY_LOG_ENABLED     | Enable Foundry browser console logging                                                                               | `false`                 |
+| AUTH_STRATEGY           | Method to use for authentication with the API. <br> *Currently supported methods are:* `discord`, `oidc`, `disabled` | `discord`               |
+| DISCORD_GUILD_ID        | Discord server ID for authentication                                                                                 | `null`                  |
+| DISCORD_ROLE_ID         | Discord Role ID required for API access                                                                              | `null`                  |
+| DISCORD_GM_ROLE_ID      | Discord GM Role ID (if omitted, all users will be considered GMs)                                                    | `null`                  |
+| DISCORD_ADMIN_ROLE_ID   | Discord Admin Role ID (if omitted, all users will be admins in API, bypassing restrictions)                          | `null`                  |
+| DISCORD_CLIENT_ID       | Discord application Client ID                                                                                        | `null`                  |
+| DISCORD_CLIENT_SECRET   | Discord application Client Secret                                                                                    | `null`                  |
+| OIDC_ISSUER             | Issuer URL of the OIDC provider. The configuration should be at `${issuer}/.well-known/openid-configuration`         | `null`                  |
+| OIDC_CLIENT_ID          | OpenID Connect authentication Client ID                                                                              | `null`                  |
+| OIDC_CLIENT_SECRET      | OpenID Connect authentication Client Secret                                                                          | `null`                  |
+| OIDC_EXTRA_SCOPES       | Extra scopes you might need for your auth provider. `openid email profile` is always included.                       | `null`                  |
+| OIDC_USERNAME_ATTRIBUTE | Attribute to use for the username.                                                                                   | `preferred_username`    |
+| OIDC_ROLE_CLAIM         | Claim name to get roles to define levels of user auth                                                                | `groups`                |
+| OIDC_GM_ROLE            | Role/group of users that are considered GM                                                                           | `null`                  |
+| OIDC_ADMIN_ROLE         | Role/group of users that are considered API admins.  They bypass all permission restrictions.                        | `null`                  |
+
+# Contributing
 
 ## Project setup
+
+Simply clone the project and run
 
 ```bash
 $ yarn install
@@ -34,65 +120,8 @@ $ yarn install
 ## Compile and run the project
 
 ```bash
-# development
-$ yarn run start
-
-# watch mode
 $ yarn run start:dev
-
-# production mode
-$ yarn run start:prod
 ```
+You'll still need a few basic environment variables for it to launch properly, like a database connection, and a secret key.
 
-## Run tests
-
-```bash
-# unit tests
-$ yarn run test
-
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ yarn install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+The easiest way is to create a `.env` file with the values you need.
