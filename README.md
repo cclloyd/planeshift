@@ -1,12 +1,14 @@
 
 <p align="center">
-  <a href="https://nestjs.com/" target="blank"><img src="https://raw.githubusercontent.com/cclloyd/demiplane/refs/heads/main/resources/demiplane-2-full.webp" width="120" alt="Demiplane Logo" /></a>
+  <a href="https://nestjs.com/" target="blank"><img src="https://raw.githubusercontent.com/cclloyd/demiplane/refs/heads/main/resources/demiplane-3-full.webp" width="120" alt="Demiplane Logo" /></a>
 </p>
 
 <p align="center">A REST API to make a FoundryVTT instance more accessible outside of the game.</p>
 
 <p align="center">
-    <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
+  <img alt="GitHub License" src="https://img.shields.io/github/license/cclloyd/demiplane">
+  <img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/cclloyd/demiplane/build.yaml">
+  <img alt="GitHub Tag" src="https://img.shields.io/github/v/tag/cclloyd/demiplane?label=Release&color=0480C5">
 </p>
 
 ## Description
@@ -72,6 +74,13 @@ Generic OIDC is supported thanks to [passport-openidconnect](https://www.npmjs.c
 
 - You will need a client ID and secret.
 - You may need to adjust your scopes and role claim to suit your needs.
+
+
+## Reverse Proxy
+
+Running behind a proxy is fully supported.  All endpoints are under `/api`, making it convenient to route using the same hostname your foundry instance is hosted on.
+
+Whatever hostname/protocol you set for your proxy, you should also set the variable `EXTERNAL_URL` to match (excluding `/api`)
 
 ## Full Configuration
 
