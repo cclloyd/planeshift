@@ -1,7 +1,7 @@
 services:
   demiplane:
     container_name: demiplane
-    image: demiplane
+    image: ghcr.io/cclloyd/demiplane:latest
     ports:
       - "3000:3000"
     environment:
