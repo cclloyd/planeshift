@@ -1,11 +1,11 @@
 {
   "type": "module",
-  "name": "fvtt-api",
+  "name": "demiplane",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "A REST API for FoundryVTT.",
+  "author": "cclloyd",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",

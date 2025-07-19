@@ -1,6 +1,6 @@
 
 <p align="center">
-  <a href="https://nestjs.com/" target="blank"><img src="https://git.cclloyd.com/cclloyd/foundryvtt-api/raw/branch/main/resources/fvttapilogo.webp" width="120" alt="Nest Logo" /></a>
+  <a href="https://nestjs.com/" target="blank"><img src="https://raw.githubusercontent.com/cclloyd/demiplane/refs/heads/main/resources/demiplane-1-full.webp" width="120" alt="Demiplane Logo" /></a>
 </p>
 
 <p align="center">A REST API to make a FoundryVTT instance more accessible outside of the game.</p>
@@ -11,11 +11,11 @@
 
 ## Description
 
-FoundryVTT API is a REST API layer that connects to a running FoundryVTT instance, allowing you to access the game data in other apps easily.
+**Demiplane** is a REST API layer that connects to a running FoundryVTT instance, allowing you to access the game data in other apps easily.
 
-Discord and OIDC authentication included by default, making it relatively simple to allow only your game users access to the API.
+Discord and OIDC authentication are included by default, making it relatively simple to allow only your game users access to the API.
 
-For the API to be able to connect to your instance, you will need to create a player in the game, preferably called `APIUser` (case sensitive) and a password. You *can* use your existing GM account if you wish, but you and the API can't be logged in at the same time.  For this reason, it's recommended to create a dedicated user for the API.
+For the API to be able to connect to your instance, you will need to create a player in the game, preferably called `APIUser` (case-sensitive) and a password. You *can* use your existing GM account if you wish, but you and the API can't be logged in at the same time.  For this reason, it's recommended to create a dedicated user for the API.
 
 ### Key Features
 - OIDC/Discord authentication
@@ -29,7 +29,7 @@ For the API to be able to connect to your instance, you will need to create a pl
 
 A mostly ready to go [docker-compose.yml](./docker-compose.yml) file is provided.
 
-- Generate a secret key by running `docker compose run --rm fvttapi gen_secret`. 
+- Generate a secret key by running `docker compose run --rm demiplane gen_secret`. 
 - Fill in required env vars in compose file. You will need:
   - The Secret key we just generated.
   - A URL that the API will be accessed by.  This will be the only hostname that will be able to authenticate with OIDC.
@@ -52,7 +52,7 @@ If you want to just run by cloning this repo, you can run `yarn build`, then `ya
 
 - Go to the [Discord developer portal](https://discord.com/developers/applications)
 - Create an application.  Name it whatever you wish, `FoundryAPI` for example.
-- Click on your new application and go to OAuth2
+- Click on your new application and go to OAuth2.
 - Take note of your client ID and secret to copy into `DISCORD_CLIENT_ID` and `DISCORD_CLIENT_SECRET` env vars.
 - Add a redirect URL.  This is in the format of `${EXTERNAL_URL}/api/auth/discord/callback`
 - Be sure to save any changes.
@@ -77,15 +77,15 @@ Generic OIDC is supported thanks to [passport-openidconnect](https://www.npmjs.c
 
 Most of the API is configured via environment variables. A `.env` file will be loaded automatically if found.
 
-| Environment Variable    | Description                                                                                                          | Default / Example Value |
+| Environment Variable    | Description                                                                                                          | Default                 |
 |-------------------------|----------------------------------------------------------------------------------------------------------------------|-------------------------|
 | EXTERNAL_URL            | Public facing URL of the container.  Required for the auth callbacks to work properly.                               | `http://localhost:3000` |
 | SECRET_KEY              | Secret key for sessions/authentication                                                                               | `null`                  |
 | MONGO_HOST              | MongoDB server hostname or IP address                                                                                | `localhost`             |
 | MONGO_PORT              | MongoDB server port                                                                                                  | `27017`                 |
-| MONGO_USER              | MongoDB username                                                                                                     | `fvttapi`               |
+| MONGO_USER              | MongoDB username                                                                                                     | `demiplane`             |
 | MONGO_PASS              | MongoDB password                                                                                                     | `CHANGEME`              |
-| MONGO_DB                | MongoDB database name                                                                                                | `fvttapi`               |
+| MONGO_DB                | MongoDB database name                                                                                                | `demiplane`             |
 | FOUNDRY_HOST            | Foundry VTT instance URL                                                                                             | `null`                  |
 | FOUNDRY_USER            | Username to log into Foundry VTT game                                                                                | `null`                  |
 | FOUNDRY_PASS            | Password to log into Foundry VTT game                                                                                | `null`                  |
@@ -125,3 +125,10 @@ $ yarn run start:dev
 You'll still need a few basic environment variables for it to launch properly, like a database connection, and a secret key.
 
 The easiest way is to create a `.env` file with the values you need.
+
+## Core Technologies
+
+- [NestJS](https://nestjs.com/): For API framework
+- [Puppeteer](https://pptr.dev/): Headless browser manipulation for the running foundry game
+- [fvtt-types](https://github.com/League-of-Foundry-Developers/foundry-vtt-types): FoundryVTT Typescript type library, courtesy of League of Foundry Developers
+- [passport.js](https://www.passportjs.org/): Authentication library

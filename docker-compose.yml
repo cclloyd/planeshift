@@ -1,15 +1,15 @@
 services:
-  fvttapi:
-    container_name: fvttapi
-    image: fvttapi
+  demiplane:
+    container_name: demiplane
+    image: demiplane
     ports:
       - "3000:3000"
     environment:
       SECRET_KEY: 'CHANGEME'
       # MONGO_HOST: 'localhost'
       # MONGO_PASS: '27017'
-      # MONGO_DB: 'fvttapi'
-      MONGO_USER: 'fvttapi'
+      # MONGO_DB: 'demiplane'
+      MONGO_USER: 'demiplane'
       MONGO_PASS: 'CHANGEME'
 
       # Foundry settings
@@ -46,7 +46,7 @@ services:
 #    volumes:
 #      - mongo-data:/data/db
 #    environment:
-#      MONGO_INITDB_ROOT_USERNAME: 'fvttapi'
+#      MONGO_INITDB_ROOT_USERNAME: 'demiplane'
 #      MONGO_INITDB_ROOT_PASSWORD: 'CHANGEME'
 
 #volumes:
