@@ -1,5 +1,4 @@
 import { Controller, Get, HttpException, HttpStatus, Optional, Query, Req, Request, Res, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service.js';
 import { DiscordStrategy } from './discord.strategy.js';
 import { Response } from 'express';

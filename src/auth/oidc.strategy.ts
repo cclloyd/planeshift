@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, Req, Request } from '@nestjs/common';
+import { Injectable, Req } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-openidconnect';
 import { dotEnv } from '../env.js';
@@ -89,7 +89,6 @@ export class OpenIdConnectStrategy extends PassportStrategy(Strategy, 'openidcon
                 oidc_id: userInfo.sub,
             });
         }
-
 
         // Check if user has ApiKey and create if missing
         const apiKey = await this.apiKey.findOne({ user: user._id });

@@ -53,5 +53,4 @@ export class LooseBoolean extends Boolean {
     toString(): string {
         return String(this.value);
     }
-
 }

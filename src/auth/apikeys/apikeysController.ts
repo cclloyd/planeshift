@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Request, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { ApiKeysService } from './apikeys.service.js';
 import { CreateApikeyDto } from './dto/create-apikey.dto.js';
 import { UpdateApikeyDto } from './dto/update-apikey.dto.js';

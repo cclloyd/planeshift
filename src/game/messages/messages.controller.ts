@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseBoolPipe, ParseEnumPipe, ParseIntPipe, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, ParseBoolPipe, ParseIntPipe, Query, UseGuards } from '@nestjs/common';
 import { MessagesService } from './messages.service.js';
 import { ApiAuthGuard } from '../../auth/api.guard.js';
 
