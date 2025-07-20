@@ -1,12 +1,11 @@
-
 <p align="center">
-  <a href="https://nestjs.com/" target="blank"><img src="https://raw.githubusercontent.com/cclloyd/demiplane/refs/heads/main/resources/demiplane-3-full.webp" width="120" alt="Demiplane Logo" /></a>
+  <img src="https://raw.githubusercontent.com/cclloyd/demiplane/refs/heads/main/resources/demiplane-3-full.webp" width="120" alt="Demiplane Logo" />
 </p>
 
-<p align="center">A REST API to make a FoundryVTT instance more accessible outside of the game.</p>
+<p align="center">A REST API to make a FoundryVTT instance more accessible outside the game.</p>
 
 <p align="center">
-  <img alt="GitHub License" src="https://img.shields.io/github/license/cclloyd/demiplane">
+  <a href="https://opensource.org/licenses/MIT" ><img src="https://img.shields.io/badge/License-MIT-brightgreen.svg" alt="MIT License"/></a>
   <img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/cclloyd/demiplane/build.yaml">
   <img alt="GitHub Tag" src="https://img.shields.io/github/v/tag/cclloyd/demiplane?label=Release&color=0480C5">
 </p>
