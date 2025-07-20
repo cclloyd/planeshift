@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "name": "demiplane",
+  "name": "planeshift",
   "version": "0.0.1",
   "description": "A REST API for FoundryVTT.",
   "author": "cclloyd",

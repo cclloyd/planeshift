@@ -1,15 +1,15 @@
 services:
-  demiplane:
-    container_name: demiplane
-    image: ghcr.io/cclloyd/demiplane:latest
+  planeshift:
+    container_name: planeshift
+    image: ghcr.io/cclloyd/planeshift:latest
     ports:
       - "3000:3000"
     environment:
       SECRET_KEY: 'CHANGEME'
       # MONGO_HOST: 'localhost'
       # MONGO_PASS: '27017'
-      # MONGO_DB: 'demiplane'
-      MONGO_USER: 'demiplane'
+      # MONGO_DB: 'planeshift'
+      MONGO_USER: 'planeshift'
       MONGO_PASS: 'CHANGEME'
 
       # Foundry settings
@@ -46,7 +46,7 @@ services:
 #    volumes:
 #      - mongo-data:/data/db
 #    environment:
-#      MONGO_INITDB_ROOT_USERNAME: 'demiplane'
+#      MONGO_INITDB_ROOT_USERNAME: 'planeshift'
 #      MONGO_INITDB_ROOT_PASSWORD: 'CHANGEME'
 
 #volumes:

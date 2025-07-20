@@ -31,7 +31,7 @@ async function bootstrap() {
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
     const config = new DocumentBuilder()
-        .setTitle('Demiplane Schema')
+        .setTitle('PlaneShift Schema')
         .setDescription('Full Swagger schema for the FoundryVTT REST API.')
         .setVersion(dotEnv.API_VERSION)
         .addSecurity('tokenAuth', {

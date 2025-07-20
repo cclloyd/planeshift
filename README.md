@@ -1,18 +1,18 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/cclloyd/demiplane/refs/heads/main/src/resources/images/demiplane-3-full.webp" width="120" alt="Demiplane Logo" />
+  <img src="https://raw.githubusercontent.com/cclloyd/planeshift/refs/heads/main/src/resources/images/planeshift-3-full.webp" width="120" alt="PlaneShift Logo" />
 </p>
 
 <p align="center">A REST API to make a FoundryVTT instance more accessible outside the game.</p>
 
 <p align="center">
   <a href="https://opensource.org/licenses/MIT" ><img src="https://img.shields.io/badge/License-MIT-brightgreen.svg" alt="MIT License"/></a>
-  <img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/cclloyd/demiplane/build.yaml">
-  <img alt="GitHub Tag" src="https://img.shields.io/github/v/tag/cclloyd/demiplane?label=Release&color=0480C5">
+  <img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/cclloyd/planeshift/build.yaml">
+  <img alt="GitHub Tag" src="https://img.shields.io/github/v/tag/cclloyd/planeshift?label=Release&color=0480C5">
 </p>
 
 ## Description
 
-**Demiplane** is a REST API layer that connects to a running FoundryVTT instance, allowing you to access the game data in other apps easily.
+**PlaneShift** is a REST API layer that connects to a running FoundryVTT instance, allowing you to access the game data in other apps easily.
 
 Discord and OIDC authentication are included by default, making it relatively simple to allow only your game users access to the API.
 
@@ -30,7 +30,7 @@ For the API to be able to connect to your instance, you will need to create a pl
 
 A mostly ready to go [docker-compose.yml](./docker-compose.yml) file is provided.
 
-- Generate a secret key by running `docker compose run --rm demiplane gen_secret`. 
+- Generate a secret key by running `docker compose run --rm planeshift gen_secret`. 
 - Fill in required env vars in compose file. You will need:
   - The Secret key we just generated.
   - A URL that the API will be accessed by.  This will be the only hostname that will be able to authenticate with OIDC.
@@ -91,9 +91,9 @@ Most of the API is configured via environment variables. A `.env` file will be l
 | SECRET_KEY              | Secret key for sessions/authentication                                                                               | `null`                  |
 | MONGO_HOST              | MongoDB server hostname or IP address                                                                                | `localhost`             |
 | MONGO_PORT              | MongoDB server port                                                                                                  | `27017`                 |
-| MONGO_USER              | MongoDB username                                                                                                     | `demiplane`             |
+| MONGO_USER              | MongoDB username                                                                                                     | `planeshift`            |
 | MONGO_PASS              | MongoDB password                                                                                                     | `CHANGEME`              |
-| MONGO_DB                | MongoDB database name                                                                                                | `demiplane`             |
+| MONGO_DB                | MongoDB database name                                                                                                | `planeshift`            |
 | FOUNDRY_HOST            | Foundry VTT instance URL                                                                                             | `null`                  |
 | FOUNDRY_USER            | Username to log into Foundry VTT game                                                                                | `null`                  |
 | FOUNDRY_PASS            | Password to log into Foundry VTT game                                                                                | `null`                  |
