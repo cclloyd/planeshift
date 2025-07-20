@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/cclloyd/planeshift/refs/heads/main/src/resources/images/planeshift-3-full.webp" width="120" alt="PlaneShift Logo" />
+  <img src="https://raw.githubusercontent.com/cclloyd/planeshift/refs/heads/main/src/resources/images/logo-full.webp" width="120" alt="PlaneShift Logo" />
 </p>
 
 <p align="center">A REST API to make a FoundryVTT instance more accessible outside the game.</p>
