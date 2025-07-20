@@ -23,7 +23,7 @@ jobs:
         run: |
           docker build --push \
             --build-arg UPSTREAM_REPO=https://git.cclloyd.com/${GITHUB_REPOSITORY}.git \
-            --build-arg APP_VERSION=${GITHUB_REF_NAME} \
+            --build-arg API_VERSION=${GITHUB_REF_NAME} \
             --tag git.cclloyd.com/${GITHUB_REPOSITORY}:${GITHUB_SHA} \
             --tag git.cclloyd.com/${GITHUB_REPOSITORY}:${GITHUB_REF_NAME} \
             --tag git.cclloyd.com/${GITHUB_REPOSITORY}:latest \

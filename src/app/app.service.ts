@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { FoundryService } from './foundry/foundry.service.js';
-import { FoundryStatus } from './foundry/types.js';
+import { FoundryService } from '../foundry/foundry.service.js';
+import { FoundryStatus } from '../foundry/types.js';
 
 @Injectable()
 export class AppService {

@@ -27,9 +27,11 @@ export interface FoundryEnv {
     DISCORD_ADMIN_ROLE_ID?: string;
     DISCORD_GM_ROLE_ID?: string;
     DISCORD_API_URL: string;
+    API_VERSION: string;
 }
 
 export const dotEnv: FoundryEnv = {
+    API_VERSION: process.env.API_VERSION ?? `dev-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`,
     EXTERNAL_URL: process.env.EXTERNAL_URL ?? 'http://localhost:3000',
     FOUNDRY_HOST: process.env.FOUNDRY_HOST!,
     FOUNDRY_USER: process.env.FOUNDRY_USER ?? 'APIUser',

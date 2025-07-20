@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/cclloyd/demiplane/refs/heads/main/resources/demiplane-3-full.webp" width="120" alt="Demiplane Logo" />
+  <img src="https://raw.githubusercontent.com/cclloyd/demiplane/refs/heads/main/src/resources/images/demiplane-3-full.webp" width="120" alt="Demiplane Logo" />
 </p>
 
 <p align="center">A REST API to make a FoundryVTT instance more accessible outside the game.</p>

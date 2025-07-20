@@ -30,7 +30,7 @@ jobs:
         run: |
           docker build --push \
             --build-arg UPSTREAM_REPO=https://github.com/${GITHUB_REPOSITORY}.git \
-            --build-arg APP_VERSION=${GITHUB_REF_NAME} \
+            --build-arg API_VERSION=${GITHUB_REF_NAME} \
             --tag ghcr.io/${GITHUB_REPOSITORY}:${GITHUB_SHA} \
             --tag ghcr.io/${GITHUB_REPOSITORY}:${GITHUB_REF_NAME} \
             --tag ghcr.io/${GITHUB_REPOSITORY}:latest \

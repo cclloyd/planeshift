@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Schema as MongooseSchema } from 'mongoose';
+import { Model, Schema as MongooseSchema, Types } from 'mongoose';
 import { User } from './schemas/users.schema.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
@@ -23,7 +23,7 @@ export class UsersService {
         return this.userModel.find();
     }
 
-    findOne(filter: string | MongooseSchema.Types.ObjectId | UpdateUserDto) {
+    findOne(filter: string | Types.ObjectId | UpdateUserDto) {
         const query = typeof filter === 'string' ? { _id: filter } : filter;
         return this.userModel.findOne(query);
     }
@@ -40,7 +40,7 @@ export class UsersService {
         return this.apiKeyModel.updateOne({ _id: id }, updateUserDto);
     }
 
-    async remove(id: string) {
+    async remove(id: string | Types.ObjectId | UpdateUserDto) {
         const user = await this.userModel.findOne({ _id: id });
         if (!user) throw new HttpException(`User ${id} not found.`, HttpStatus.NOT_FOUND);
         await this.apiKeyModel.deleteOne({ user: user._id });

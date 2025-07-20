@@ -1,15 +1,43 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { FoundryService } from '../../foundry/foundry.service.js';
-import { PaginatedMessages } from './types.js';
+import { ChatMessageType, PaginatedMessages } from './types.js';
+
+export interface GetPaginatedMessagesOptions {
+    page?: number;
+    limit?: number;
+    links?: boolean;
+    order?: 'asc' | 'desc';
+    type?: ChatMessageType;
+    whispers?: boolean;
+}
 
 @Injectable()
 export class MessagesService {
     constructor(private readonly foundry: FoundryService) {}
 
-    async paginateResults(input: unknown[], page: number = 1, limit: number = 100, links: boolean = false, order: 'asc' | 'desc' = 'desc') {
+    async paginateResults(
+        input: unknown[],
+        page: number = 1,
+        limit: number = 100,
+        links: boolean = false,
+        order: 'asc' | 'desc' = 'desc',
+        type: ChatMessageType = ChatMessageType.ALL,
+        whispers = true,
+    ) {
         const startIndex = (page - 1) * limit;
         const endIndex = startIndex + limit;
-        const paginated = (order === 'desc' ? input.reverse() : input).slice(startIndex, endIndex);
+        let filtered = order === 'asc' ? input.reverse() : input;
+
+        // Filter out messages based on their types
+        if (!whispers) filtered = filtered.filter((message: ChatMessage) => message.whisper.length === 0);
+        if (type !== ChatMessageType.ALL) {
+            if (type === ChatMessageType.CHAT) filtered = filtered.filter((message: ChatMessage) => message.rolls.length === 0);
+            else if (type === ChatMessageType.ROLLS) filtered = filtered.filter((message: ChatMessage) => message.rolls.length > 0);
+            else if (type === ChatMessageType.IC) filtered = filtered.filter((message: ChatMessage) => message.speaker.actor !== null);
+            else if (type === ChatMessageType.OOC) filtered = filtered.filter((message: ChatMessage) => message.speaker.actor === null);
+        }
+
+        const paginated = filtered.slice(startIndex, endIndex);
         if (links) {
             const game = (await this.foundry.runFoundry(() => {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -45,9 +73,9 @@ export class MessagesService {
             return {
                 data: paginated,
                 length: paginated.length,
-                total: input.length,
+                total: filtered.length,
                 page: page,
-                totalPages: Math.ceil(input.length / limit),
+                totalPages: Math.ceil(filtered.length / limit),
                 limit: limit,
                 links: {
                     scenes: Array.from(uniqueScenes).reduce(
@@ -80,18 +108,20 @@ export class MessagesService {
         return {
             data: paginated.reverse(),
             length: paginated.length,
-            total: input.length,
-            totalPages: Math.ceil(input.length / limit),
+            total: filtered.length,
+            totalPages: Math.ceil(filtered.length / limit),
             page: page,
             limit: limit,
         } as PaginatedMessages;
     }
 
-    async getAllMessages(page: number = 1, limit: number = 100, links: boolean = false, order: 'asc' | 'desc' = 'desc') {
+    async getAllMessages(options: GetPaginatedMessagesOptions = {}) {
+        const { page = 1, limit = 100, links = false, order = 'desc', type = ChatMessageType.ALL, whispers = true } = options;
         const messages = (await this.foundry.runFoundry(() => {
             return game.data!.messages!;
         })) as ChatMessage[];
-        return this.paginateResults(messages, page, limit, links, order);
+        // TODO: See if its faster to inject a paginate callback into the page onPageLoad then pass in paginate query params to the runFoundry function to get a smaller list back vs parsing the list ourselves
+        return this.paginateResults(messages, page, limit, links, order, type, whispers);
     }
 
     async getMessage(id: string) {

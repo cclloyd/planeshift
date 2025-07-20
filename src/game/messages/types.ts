@@ -1,3 +1,11 @@
+export enum ChatMessageType {
+    ALL = 'all',
+    CHAT = 'chat',
+    ROLLS = 'rolls',
+    IC = 'ic',
+    OOC = 'ooc',
+}
+
 export interface MessageLinks {
     // scenes?: Scene[];
     // actors?: Actor[];

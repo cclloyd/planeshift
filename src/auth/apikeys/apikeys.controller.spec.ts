@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ApiKeysController } from './apikeysController.js';
+import { ApiKeysController } from './apikeys.controller.js';
 import { ApiKeysService } from './apikeys.service.js';
 
 describe('ApiKeysController', () => {

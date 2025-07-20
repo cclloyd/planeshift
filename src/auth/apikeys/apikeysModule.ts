@@ -1,6 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { ApiKeysService } from './apikeys.service.js';
-import { ApiKeysController } from './apikeysController.js';
+import { ApiKeysController } from './apikeys.controller.js';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ApiKey, ApiKeysSchema } from './schemas/apikeys.schema.js';
 import { ApiKeyAuthGuard } from './apikeys.guard.js';

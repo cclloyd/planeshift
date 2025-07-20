@@ -12,6 +12,10 @@ import { ApiKeysModule } from './apikeys/apikeysModule.js';
 import { JwtAuthGuard } from './jwt.guard.js';
 import { ApiAuthGuard } from './api.guard.js';
 import { ApiKeyAuthGuard } from './apikeys/apikeys.guard.js';
+import { UsersController } from './users/users.controller.js';
+import { MongooseModule } from '@nestjs/mongoose';
+import { User, UsersSchema } from './users/schemas/users.schema.js';
+import { ApiKey, ApiKeysSchema } from './apikeys/schemas/apikeys.schema.js';
 
 @Module({
     imports: [
@@ -23,8 +27,10 @@ import { ApiKeyAuthGuard } from './apikeys/apikeys.guard.js';
             secret: jwtConstants.secret,
             signOptions: { expiresIn: '300s' },
         }),
+        MongooseModule.forFeature([{ name: User.name, schema: UsersSchema }]),
+        MongooseModule.forFeature([{ name: ApiKey.name, schema: ApiKeysSchema }]),
     ],
-    controllers: [AuthController],
+    controllers: [AuthController, UsersController],
     providers: [
         AuthService,
         JwtAuthGuard,
