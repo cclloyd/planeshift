@@ -4,6 +4,7 @@ import { Browser, ConsoleMessage, EvaluateFunc, Page, TimeoutError } from 'puppe
 import { sleep } from '../util.js';
 import { FoundryStatus } from './types.js';
 import { dotEnv } from '../env.js';
+import { paginateRaw } from './util.js';
 
 export class FoundryError extends Error {
     public readonly code: string;
@@ -133,6 +134,7 @@ export class FoundryService implements OnModuleDestroy {
             this._loadEnd = new Date();
             this.loadTime = this._loadEnd.getTime() - this._loadStart!.getTime();
             this.logger.log(`✅  FoundryVTT logged in to game in ${this.loadTime / 1000}s.`);
+            this.registerHelperFunctions().then();
         }
     }
 
@@ -170,6 +172,15 @@ export class FoundryService implements OnModuleDestroy {
             this.logger.error(`FoundryVTT error`);
             this.logger.error(e);
         }
+    }
+
+    async registerHelperFunctions() {
+        const fnString = paginateRaw.toString();
+        await this.page!.evaluate((serializedFn: string) => {
+            // @ts-expect-error
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            window.paginateRaw = eval(`(${serializedFn})`);
+        }, fnString);
     }
 
     async connectToFoundry() {

@@ -5,6 +5,7 @@ import { dotEnv } from '../env.js';
 import { APIGuildMember, APIUser } from 'discord-api-types/v10';
 import { User } from './users/schemas/users.schema.js';
 import { ApiKeysService } from './apikeys/apikeys.service.js';
+import { Request } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -14,12 +15,13 @@ export class AuthService {
         private jwt: JwtService,
     ) {}
 
-    async validateDiscordUser(code: string, state?: string) {
-        const REDIRECT_URI = `${dotEnv.EXTERNAL_URL}/api/auth/discord/callback`;
+    async validateDiscordUser(req: Request, code: string, state?: string) {
+        const origin = req.get('origin') ?? `${req.protocol}://${req.get('host')}`;
+        const REDIRECT_URI = `${origin}/api/auth/discord/callback`;
         const data = new URLSearchParams({
             grant_type: 'authorization_code',
-            code: code,
             redirect_uri: REDIRECT_URI,
+            code: code,
             client_id: dotEnv.DISCORD_CLIENT_ID!,
             client_secret: dotEnv.DISCORD_CLIENT_SECRET!,
         });

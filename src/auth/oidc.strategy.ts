@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { TokenResponse } from './types.js';
 import { jwtDecode } from 'jwt-decode';
 import { createHash } from 'crypto';
+import { Request } from 'express';
 
 @Injectable()
 export class OpenIdConnectStrategy extends PassportStrategy(Strategy, 'openidconnect') {
@@ -20,13 +21,20 @@ export class OpenIdConnectStrategy extends PassportStrategy(Strategy, 'openidcon
             issuer: dotEnv.OIDC_ISSUER!,
             clientID: dotEnv.OIDC_CLIENT_ID!,
             clientSecret: dotEnv.OIDC_CLIENT_SECRET!,
-            callbackURL: `${dotEnv.EXTERNAL_URL}/api/auth/oidc/callback`,
+            callbackURL: ``,
             authorizationURL: `${dotEnv.OIDC_ISSUER!}/protocol/openid-connect/auth`,
             tokenURL: `${dotEnv.OIDC_ISSUER!}/protocol/openid-connect/token`,
             userInfoURL: `${dotEnv.OIDC_ISSUER!}/protocol/openid-connect/userinfo`,
             passReqToCallback: true, // To handle the request object in the callback
             scope: ['openid', 'profile', 'email', ...dotEnv.OIDC_EXTRA_SCOPES!],
         });
+    }
+
+    override authenticate(req: Request, options?: Record<string, unknown>): void {
+        const origin = req.get('origin') ?? `${req.protocol}://${req.get('host')}`;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        (this as any)._oauth2._callbackURL = `${origin}/api/auth/oidc/callback`;
+        super.authenticate(req, options);
     }
 
     /**
@@ -41,8 +49,9 @@ export class OpenIdConnectStrategy extends PassportStrategy(Strategy, 'openidcon
      * @returns User object to attach to the request
      */
     //async validate(req: any, issuer: string, profile?: any, idToken?: string, accessToken?: string, refreshToken?: string) {
-    async validate(@Req() req: any, code: string, state: string) {
-        const REDIRECT_URI = `${dotEnv.EXTERNAL_URL}/api/auth/oidc/callback`;
+    async validate(@Req() req: Request, code: string, state: string) {
+        const origin = req.get('origin') ?? `${req.protocol}://${req.get('host')}`;
+        const REDIRECT_URI = `${origin}/api/auth/oidc/callback`;
         const data = new URLSearchParams({
             grant_type: 'authorization_code',
             code: code,

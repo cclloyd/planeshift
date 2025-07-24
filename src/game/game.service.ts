@@ -1,5 +1,7 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Body, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { FoundryService } from '../foundry/foundry.service.js';
+import { GenericEvalDto } from './dto/eval.dto.js';
+import { EvaluateFunc } from 'puppeteer';
 
 @Injectable()
 export class GameService {
@@ -27,5 +29,11 @@ export class GameService {
         })) as Game;
         if (!gameData) throw new HttpException(`World not found.  Is the game loaded?`, HttpStatus.NOT_FOUND);
         return gameData;
+    }
+
+    async evaluateFunction(@Body() body: GenericEvalDto): Promise<any> {
+        const { fn, args } = body;
+        const jsFunction = eval(`(${fn})`) as EvaluateFunc<any>;
+        return await this.foundry.runFoundry(jsFunction, ...args);
     }
 }
