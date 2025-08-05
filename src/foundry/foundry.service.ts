@@ -227,18 +227,18 @@ export class FoundryService implements OnModuleDestroy {
                 window.localStorage.setItem('core.noCanvas', 'true');
             });
 
-            // Navigate to the Foundry VTT loginToGame page
+            // Navigate to the Foundry VTT login page
             await this.page.goto(`${this.url}/auth`, {
                 waitUntil: 'networkidle2',
                 timeout: this.TIMEOUT,
             });
 
-            // If we actually reached /auth, there is no game active and we need to try and loginToGame as admin.
+            // If we actually reached /auth, there is no game active and we need to try and login as admin.
             if (this.page.url().endsWith('/auth')) {
                 await this.loginAdmin();
             }
 
-            // Check if we reached the loginToGame page or an error page
+            // Check if we reached the login page or an error page
             const headerContent = await this.page.$eval('header#main-header', (el) => el.textContent?.trim());
             if (headerContent === 'Critical Failure!') {
                 const details = await this.page.$eval('.error-details p', (el) => el.textContent?.trim());
@@ -246,7 +246,7 @@ export class FoundryService implements OnModuleDestroy {
             }
 
             this.status = FoundryStatus.CONNECTING;
-            // Next step of loginToGame will be triggered on console message that confirms the websocket connected
+            // Next step of login will be triggered on console message that confirms the websocket connected
         } catch (e) {
             this.handleFoundryError(e);
         }
@@ -285,11 +285,11 @@ export class FoundryService implements OnModuleDestroy {
         // });
         // TODO: trigger loginToGame when url changes to /join
         //return await this.loginToGame();
-        //throw new FoundryError('No active game session and unable to loginToGame to the specified default game. asdf', 'LOGIN_FAILURE');
+        //throw new FoundryError('No active game session and unable to login to the specified default game. asdf', 'LOGIN_FAILURE');
     }
 
     async loginToGame() {
-        if (!this.page) throw new Error('Connect to foundry first before attempting to call loginToGame');
+        if (!this.page) throw new Error('Connect to foundry first before attempting to call login');
         console.log('Attempting foundry game login...');
         await sleep(1000);
         // Loop around for a few seconds to try and do it as soon as it loads, but not to wait unnecessarily long.
