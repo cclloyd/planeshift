@@ -2,7 +2,6 @@ import { LooseBoolean } from './util.js';
 import 'dotenv/config';
 
 export interface FoundryEnv {
-    EXTERNAL_URL: string;
     MONGO_HOST: string;
     MONGO_PORT: number;
     MONGO_USER: string;
@@ -19,7 +18,6 @@ export interface FoundryEnv {
     OIDC_EXTRA_SCOPES?: string | string[];
     OIDC_USERNAME_ATTRIBUTE?: string;
     SECRET_KEY: string;
-    AUTH_METHOD: string;
     DISCORD_CLIENT_ID?: string;
     DISCORD_CLIENT_SECRET?: string;
     DISCORD_GUILD_ID?: string;
@@ -28,17 +26,24 @@ export interface FoundryEnv {
     DISCORD_GM_ROLE_ID?: string;
     DISCORD_API_URL: string;
     API_VERSION: string;
+    REDIS_ENABLED: boolean;
+    REDIS_HOST: string;
+    REDIS_PORT: number;
+    REDIS_USER?: string;
+    REDIS_PASS?: string;
+    REDIS_DB?: string;
+    LOGIN_DURATION: string;
+    AUTH_PROVIDERS: string[];
 }
 
 export const dotEnv: FoundryEnv = {
     API_VERSION: process.env.API_VERSION ?? `dev-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`,
-    EXTERNAL_URL: process.env.EXTERNAL_URL ?? 'http://localhost:3000',
+    AUTH_PROVIDERS: (process.env.LOGIN_DURATION ?? 'discord,oidc').split(','),
     FOUNDRY_HOST: process.env.FOUNDRY_HOST!,
     FOUNDRY_USER: process.env.FOUNDRY_USER ?? 'APIUser',
     FOUNDRY_PASS: process.env.FOUNDRY_PASS!,
     FOUNDRY_ADMIN_PASS: process.env.FOUNDRY_ADMIN_PASS,
     FOUNDRY_LOG_ENABLED: new LooseBoolean(process.env.FOUNDRY_LOG_ENABLED).valueOf(),
-    AUTH_METHOD: process.env.AUTH_METHOD ?? 'discord',
     OIDC_ISSUER: process.env.OIDC_ISSUER,
     OIDC_CLIENT_ID: process.env.OIDC_CLIENT_ID,
     OIDC_CLIENT_SECRET: process.env.OIDC_CLIENT_SECRET,
@@ -57,6 +62,13 @@ export const dotEnv: FoundryEnv = {
     DISCORD_GM_ROLE_ID: process.env.DISCORD_GM_ROLE_ID,
     DISCORD_ADMIN_ROLE_ID: process.env.DISCORD_ADMIN_ROLE_ID,
     DISCORD_API_URL: process.env.DISCORD_API_URL ?? 'https://discord.com/api/v10',
+    REDIS_ENABLED: new LooseBoolean(process.env.REDIS_ENABLED).valueOf(),
+    REDIS_HOST: process.env.REDIS_HOST ?? 'localhost',
+    REDIS_PORT: Number(process.env.REDIS_PORT ?? 6379),
+    REDIS_USER: process.env.REDIS_USER ?? undefined,
+    REDIS_PASS: process.env.REDIS_PASS ?? undefined,
+    REDIS_DB: process.env.REDIS_DB ?? '0',
+    LOGIN_DURATION: process.env.LOGIN_DURATION ?? '7d',
 };
 
 export const requireEnv = () => {

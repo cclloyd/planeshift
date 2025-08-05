@@ -7,6 +7,7 @@ import { OpenIdConnectStrategy } from './oidc.strategy.js';
 import { User, UserDocument } from './users/schemas/users.schema.js';
 import { ReqUser } from './users/user.decorator.js';
 import { ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { parseCookies } from '../util.js';
 
 @ApiSecurity('tokenAuth')
 @ApiTags('Auth')
@@ -43,14 +44,7 @@ export class AuthController {
     async oidcCallback(@Req() req: ExpressRequest, @Res() res: ExpressResponse, @Query('code') code: string, @Query('state') state: string) {
         if (!this.oidc) throw new HttpException(`OIDC auth is not enabled.`, HttpStatus.NOT_FOUND);
         const accessToken = await this.oidc.validate(req, code, state);
-        res.cookie('access_token', accessToken, {
-            httpOnly: true,
-            secure: req.secure,
-            maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
-            sameSite: 'lax',
-            path: '/',
-        });
-        res.redirect('/api/swagger/');
+        return this.apiBrowserLogin(accessToken, req, res);
     }
 
     @Get('discord/callback')
@@ -59,14 +53,20 @@ export class AuthController {
     async discordCallback(@Req() req: ExpressRequest, @Res() res: ExpressResponse, @Query('code') code: string, @Query('state') state: string) {
         if (!this.discord) throw new HttpException(`Discord auth is not enabled.`, HttpStatus.NOT_FOUND);
         const accessToken = await this.discord.validate(req, code, state);
+        return this.apiBrowserLogin(accessToken, req, res);
+    }
+
+    async apiBrowserLogin(accessToken: string, @Req() req: ExpressRequest, @Res() res: ExpressResponse) {
+        const cookies = parseCookies(req.headers.cookie);
+        const redirectTo = cookies['login_redirect'];
+        res.clearCookie('login_redirect', { path: '/' });
         res.cookie('access_token', accessToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: req.secure,
             maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
             sameSite: 'lax',
             path: '/',
         });
-        // TODO: Redirect to original page
-        res.redirect('/api/swagger/');
+        res.redirect(redirectTo ?? '/api/swagger/');
     }
 }
