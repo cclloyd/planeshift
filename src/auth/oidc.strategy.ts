@@ -21,20 +21,13 @@ export class OpenIdConnectStrategy extends PassportStrategy(Strategy, 'openidcon
             issuer: dotEnv.OIDC_ISSUER!,
             clientID: dotEnv.OIDC_CLIENT_ID!,
             clientSecret: dotEnv.OIDC_CLIENT_SECRET!,
-            callbackURL: ``,
+            callbackURL: `/api/auth/oidc/callback`,
             authorizationURL: `${dotEnv.OIDC_ISSUER!}/protocol/openid-connect/auth`,
             tokenURL: `${dotEnv.OIDC_ISSUER!}/protocol/openid-connect/token`,
             userInfoURL: `${dotEnv.OIDC_ISSUER!}/protocol/openid-connect/userinfo`,
             passReqToCallback: true, // To handle the request object in the callback
             scope: ['openid', 'profile', 'email', ...dotEnv.OIDC_EXTRA_SCOPES!],
         });
-    }
-
-    override authenticate(req: Request, options?: Record<string, unknown>): void {
-        const origin = req.get('origin') ?? `${req.protocol}://${req.get('host')}`;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        (this as any)._oauth2._callbackURL = `${origin}/api/auth/oidc/callback`;
-        super.authenticate(req, options);
     }
 
     /**

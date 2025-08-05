@@ -54,7 +54,7 @@ export class AuthService {
             throw new HttpException(`You do not have the required discord role assigned to you.`, HttpStatus.FORBIDDEN);
 
         // Get info to make user object
-        response = await fetch('https://discord.com/api/users/@me', {
+        response = await fetch(`${dotEnv.DISCORD_API_URL}/users/@me`, {
             headers: {
                 Authorization: `Bearer ${accessToken}`,
             },

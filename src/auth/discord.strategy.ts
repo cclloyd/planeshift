@@ -13,20 +13,13 @@ export class DiscordStrategy extends PassportStrategy(Strategy, 'discord') {
             issuer: issuer,
             clientID: dotEnv.DISCORD_CLIENT_ID!,
             clientSecret: dotEnv.DISCORD_CLIENT_SECRET!,
-            callbackURL: ``,
+            callbackURL: `/api/auth/discord/callback`,
             authorizationURL: `${issuer}/api/oauth2/authorize`,
             tokenURL: `${issuer}/api/oauth2/token`,
             userInfoURL: `${issuer}/api/oauth2/userinfo`,
             passReqToCallback: true,
             scope: ['openid', 'guilds', 'guilds.members.read', 'identify', 'email'],
         });
-    }
-
-    override authenticate(req: Request, options?: Record<string, unknown>): void {
-        const origin = req.get('origin') ?? `${req.protocol}://${req.get('host')}`;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        (this as any)._oauth2._callbackURL = `${origin}/api/auth/oidc/callback`;
-        super.authenticate(req, options);
     }
 
     /**
@@ -37,7 +30,6 @@ export class DiscordStrategy extends PassportStrategy(Strategy, 'discord') {
      * @param code
      * @param state
      */
-    //async validate(req: any, issuer: string, profile: any, idToken: string, accessToken: string, refreshToken: string) {
     async validate(@Req() req: Request, code: string, state: string) {
         return this.auth.validateDiscordUser(req, code, state);
     }
