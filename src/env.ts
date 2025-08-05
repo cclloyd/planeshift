@@ -10,6 +10,7 @@ export interface FoundryEnv {
     FOUNDRY_HOST: string;
     FOUNDRY_USER: string;
     FOUNDRY_PASS: string;
+    FOUNDRY_WORLD?: string;
     FOUNDRY_ADMIN_PASS?: string;
     FOUNDRY_LOG_ENABLED: boolean;
     OIDC_ISSUER?: string;
@@ -43,6 +44,7 @@ export const dotEnv: FoundryEnv = {
     FOUNDRY_USER: process.env.FOUNDRY_USER ?? 'APIUser',
     FOUNDRY_PASS: process.env.FOUNDRY_PASS!,
     FOUNDRY_ADMIN_PASS: process.env.FOUNDRY_ADMIN_PASS,
+    FOUNDRY_WORLD: process.env.FOUNDRY_WORLD,
     FOUNDRY_LOG_ENABLED: new LooseBoolean(process.env.FOUNDRY_LOG_ENABLED).valueOf(),
     OIDC_ISSUER: process.env.OIDC_ISSUER,
     OIDC_CLIENT_ID: process.env.OIDC_CLIENT_ID,

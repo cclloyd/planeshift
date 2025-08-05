@@ -81,6 +81,12 @@ export class FoundryService implements OnModuleDestroy {
             this.page = null;
         }
         const page = await (await this.getBrowser()).newPage();
+        page.on('framenavigated', (frame) => {
+            if (frame === page.mainFrame()) {
+                this.logger.log(`ℹ️ Browser navigation: ${frame.url()}`);
+            }
+        });
+
         this.page = page;
         return page;
     }
@@ -105,12 +111,23 @@ export class FoundryService implements OnModuleDestroy {
     handleFoundryConsole(msg: ConsoleMessage) {
         if (!this) return; // Can accidentally trigger before object is fully initialized?
 
+        // Actually log the output
         if (this.logOutput) {
             const prefix = `[fvtt] `;
             const lines = msg.text().split('\n');
             for (const line of lines) {
                 this.logger.log(`${prefix}${line}`);
             }
+        }
+
+        // Handle various events from the browser javascript console
+        if (msg.text().endsWith('Fonts loaded and ready.')) {
+            if (this.page!.url().endsWith('/setup')) void this.launchGame();
+        }
+        if (msg.text().includes('Foundry VTT | Connected to server socket using session')) {
+            if (this.page!.url().endsWith('/join')) void this.loginToGame();
+            // if (this.page!.url().endsWith('/setup')) void this.launchGame();
+            // TODO: See if this trigger can be used on the other page to detect when fully loaded, or when `game` is populated at least.
         }
         if (msg.text().startsWith('[Intercepted WebSocket connection attempt]')) {
             this.logger.warn(msg.text());
@@ -124,10 +141,6 @@ export class FoundryService implements OnModuleDestroy {
             this.status = FoundryStatus.ERROR;
             this._error = new FoundryError(`FoundryVTT server connection lost.  Attempting to reestablish.`, 'SERVER_DISCONNECTED');
             this.logger.log(`❌  FoundryVTT disconnected from game.`);
-        }
-        if (msg.text().includes('Foundry VTT | Connected to server socket using session')) {
-            if (this.page!.url() === `${this.url}/join`) void this.login();
-            // TODO: See if this trigger can be used on the other page to detect when fully loaded, or when `game` is populated at least.
         }
         if (msg.text().includes('Foundry VTT | Prepared World Documents in')) {
             this.status = FoundryStatus.RUNNING;
@@ -183,42 +196,6 @@ export class FoundryService implements OnModuleDestroy {
         }, fnString);
     }
 
-    async connectToFoundry() {
-        try {
-            this.loadTime = 0;
-            this._loadStart = new Date();
-            this.status = FoundryStatus.STARTING;
-            this._error = null;
-
-            await this.getPage(true);
-            if (!this.page) throw new Error('Unable to create browser page.');
-
-            this.page.on('console', (msg) => this.handleFoundryConsole(msg));
-            await this.page.evaluateOnNewDocument(() => {
-                window.localStorage.setItem('core.noCanvas', 'true');
-            });
-
-            // Navigate to the Foundry VTT connectToFoundry page
-            await this.page.goto(`${this.url}/join`, {
-                waitUntil: 'networkidle2',
-                timeout: this.TIMEOUT,
-            });
-
-            // Check if we reached the connectToFoundry page or an error page
-            const headerContent = await this.page.$eval('header#main-header', (el) => el.textContent?.trim());
-            if (headerContent === 'Critical Failure!') {
-                const details = await this.page.$eval('.error-details p', (el) => el.textContent?.trim());
-                throw new FoundryError(details, 'LOGIN_FAILURE');
-            }
-
-            this.logger.log(`Successfully reached foundry login page`);
-            this.status = FoundryStatus.CONNECTING;
-            // Next step of login will be triggered on console message that confirms the websocket connected
-        } catch (e) {
-            this.handleFoundryError(e);
-        }
-    }
-
     async selectByVisibleText(selector: string, text: string) {
         await this.page!.evaluate(
             (selector, text) => {
@@ -235,8 +212,85 @@ export class FoundryService implements OnModuleDestroy {
         );
     }
 
-    async login() {
-        if (!this.page) throw new Error('Connect to foundry first before attempting to call login()');
+    async connectToFoundry() {
+        try {
+            this.loadTime = 0;
+            this._loadStart = new Date();
+            this.status = FoundryStatus.STARTING;
+            this._error = null;
+
+            await this.getPage(true);
+            if (!this.page) throw new Error('Unable to create browser page.');
+
+            this.page.on('console', (msg) => this.handleFoundryConsole(msg));
+            await this.page.evaluateOnNewDocument(() => {
+                window.localStorage.setItem('core.noCanvas', 'true');
+            });
+
+            // Navigate to the Foundry VTT loginToGame page
+            await this.page.goto(`${this.url}/auth`, {
+                waitUntil: 'networkidle2',
+                timeout: this.TIMEOUT,
+            });
+
+            // If we actually reached /auth, there is no game active and we need to try and loginToGame as admin.
+            if (this.page.url().endsWith('/auth')) {
+                await this.loginAdmin();
+            }
+
+            // Check if we reached the loginToGame page or an error page
+            const headerContent = await this.page.$eval('header#main-header', (el) => el.textContent?.trim());
+            if (headerContent === 'Critical Failure!') {
+                const details = await this.page.$eval('.error-details p', (el) => el.textContent?.trim());
+                throw new FoundryError(details, 'LOGIN_FAILURE');
+            }
+
+            this.status = FoundryStatus.CONNECTING;
+            // Next step of loginToGame will be triggered on console message that confirms the websocket connected
+        } catch (e) {
+            this.handleFoundryError(e);
+        }
+    }
+
+    async loginAdmin() {
+        if (!dotEnv.FOUNDRY_ADMIN_PASS) throw new FoundryError('No active game session and FOUNDRY_ADMIN_PASS not provided or invalid.', 'LOGIN_FAILURE');
+        if (!dotEnv.FOUNDRY_WORLD) throw new FoundryError('No active game session and FOUNDRY_WORLD not provided.', 'LOGIN_FAILURE');
+        const page = this.page!;
+
+        this.logger.log(`Attempting to sign in to admin page...`);
+        await page.type('[name="adminPassword"]', dotEnv.FOUNDRY_PASS);
+        await page.click('button[name="action"]');
+        await page.waitForNavigation({
+            waitUntil: 'networkidle2',
+            timeout: this.TIMEOUT,
+        });
+        this.logger.log(`Management page navigation finished`);
+    }
+
+    async launchGame() {
+        const page = this.page!;
+        this.logger.log(`Attempting to launch game ${dotEnv.FOUNDRY_WORLD}...`);
+        await sleep(3000); // TODO: Fix to remove sleep
+        console.log('click');
+        // const world = await page.$(`li[data-package-id="${dotEnv.FOUNDRY_WORLD}"]`);
+        // if (!world) throw new FoundryError('No active game session and unable to login to the specified default game (unable to find world).', 'LOGIN_FAILURE');
+        // const elem = await page.$(`li[data-package-id="${dotEnv.FOUNDRY_WORLD}"] i.fa-play-circle`);
+        // await page.waitForSelector(`li[data-package-id="${dotEnv.FOUNDRY_WORLD}"] i.fa-play-circle`, { visible: true, timeout: this.TIMEOUT });
+        // await elem!.click();
+        await page.click(`li[data-package-id="${dotEnv.FOUNDRY_WORLD}"] i.fa-play-circle`);
+
+        // await page.waitForNavigation({
+        //     waitUntil: 'networkidle2',
+        //     timeout: this.TIMEOUT,
+        // });
+        // TODO: trigger loginToGame when url changes to /join
+        //return await this.loginToGame();
+        //throw new FoundryError('No active game session and unable to loginToGame to the specified default game. asdf', 'LOGIN_FAILURE');
+    }
+
+    async loginToGame() {
+        if (!this.page) throw new Error('Connect to foundry first before attempting to call loginToGame');
+        console.log('Attempting foundry game login...');
         await sleep(1000);
         // Loop around for a few seconds to try and do it as soon as it loads, but not to wait unnecessarily long.
         try {
