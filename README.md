@@ -30,18 +30,7 @@ For the API to be able to connect to your instance, you will need to create a pl
 
 A mostly ready to go [docker-compose.yml](./docker-compose.yml) file is provided.
 
-- Generate a secret key by running `docker compose run --rm planeshift gen_secret`. 
-- Fill in required env vars in compose file. You will need:
-  - The Secret key we just generated.
-  - A URL that the API will be accessed by.  This will be the only hostname that will be able to authenticate with OIDC.
-    - API keys can still be used with any URL.
-  - A valid database connection.  A mongo sample is provided if you want to just host one locally.
-    - If you use a preexisting mongo instance, you will need to create a user and give them access to a database for the API.
-  - A valid foundry instance URL and password.  The default username is APIUser.
-  - Valid setup for an auth strategy.
-- Run `docker compose up -d`.
-
-If all is set up properly, you should be able to access it at whatever EXTERNAL_URL you set.
+Full instructions can be found on the [github wiki](https://github.com/cclloyd/planeshift/wiki/Setup)
 
 ## NodeJS
 
@@ -49,31 +38,9 @@ If you want to just run by cloning this repo, you can run `yarn build`, then `ya
 
 ## Authentication
 
-### Discord
+Discord and generic OIDC providers are supported.  You can also run without authentication, though that's not recommended.
 
-- Go to the [Discord developer portal](https://discord.com/developers/applications)
-- Create an application.  Name it whatever you wish, `FoundryAPI` for example.
-- Click on your new application and go to OAuth2.
-- Take note of your client ID and secret to copy into `DISCORD_CLIENT_ID` and `DISCORD_CLIENT_SECRET` env vars.
-- Add a redirect URL.  This is in the format of `${EXTERNAL_URL}/api/auth/discord/callback`
-- Be sure to save any changes.
-
-To get IDs for your server and roles, go to `User Settings > Advanced > Developer Mode` and switch it to true. This adds a `Copy ID` menu to a lot of discord items.
-
-- Right click on your server and copy the ID and put it in `DISCORD_GUILD_ID`
-- Click on a user with the role you want, then right click the role in the popup panel and paste it into one or more of:
-  - `DISCORD_ROLE_ID`: This is recommended but not required. Without it, anyone in the server will be able to login to your API instance.
-  - `DISCORD_GM_ROLE_ID`: Without this, anyone who authenticates will be considered a GM.
-  - `DISCORD_ADMIN_ROLE_ID`: Without this, anyone who authenticates will be considered an admin in the API. Admins bypass all restrictions.
-  - You can use the same value for multiple of these variables.
-
-### OpenID Connect
-
-Generic OIDC is supported thanks to [passport-openidconnect](https://www.npmjs.com/package/passport-openidconnect). This has been fully tested with `Keycloak` as a provider, but should work with any compliant OIDC provider.
-
-- You will need a client ID and secret.
-- You may need to adjust your scopes and role claim to suit your needs.
-
+More info on setting up an authentication provider can be found on the [github wiki](https://github.com/cclloyd/planeshift/wiki/Authentication)
 
 ## Reverse Proxy
 
@@ -85,47 +52,7 @@ Whatever hostname/protocol you set for your proxy, you should also set the varia
 
 Most of the API is configured via environment variables. A `.env` file will be loaded automatically if found.
 
-| Environment Variable    | Description                                                                                                           | Default                       |
-|-------------------------|-----------------------------------------------------------------------------------------------------------------------|-------------------------------|
-| SECRET_KEY              | Secret key for sessions/authentication                                                                                | `null`                        |
-|                         |                                                                                                                       |                               |
-| MONGO_HOST              | MongoDB server hostname or IP address                                                                                 | `localhost`                   |
-| MONGO_PORT              | MongoDB server port                                                                                                   | `27017`                       |
-| MONGO_USER              | MongoDB username                                                                                                      | `planeshift`                  |
-| MONGO_PASS              | MongoDB password                                                                                                      | `planeshift`                  |
-| MONGO_DB                | MongoDB database name                                                                                                 | `planeshift`                  |
-|                         |                                                                                                                       |                               |
-| FOUNDRY_HOST            | Foundry VTT instance URL                                                                                              | `null`                        |
-| FOUNDRY_USER            | Username to log into Foundry VTT game                                                                                 | `APIUser`                     |
-| FOUNDRY_PASS            | Password to log into Foundry VTT game                                                                                 | `null`                        |
-| FOUNDRY_ADMIN_PASS      | (Optional) Admin password for extra Foundry instance management                                                       | `null`                        |
-| FOUNDRY_LOG_ENABLED     | Enable Foundry browser console logging                                                                                | `false`                       |
-|                         |                                                                                                                       |                               |
-| AUTH_PROVIDERS          | Comma separated list of auth providers to attempt, or skip if omitted. Set to empty string to disable authentication. | `discord,oidc`                |
-| LOGIN_DURATION          | Duration for user login sessions                                                                                      | `7d`                          |
-|                         |                                                                                                                       |                               |
-| DISCORD_CLIENT_ID       | Discord application Client ID                                                                                         | `null`                        |
-| DISCORD_CLIENT_SECRET   | Discord application Client Secret                                                                                     | `null`                        |
-| DISCORD_GUILD_ID        | Discord server ID for authentication                                                                                  | `null`                        |
-| DISCORD_ROLE_ID         | Discord Role ID required for API access                                                                               | `null`                        |
-| DISCORD_GM_ROLE_ID      | Discord GM Role ID (if omitted, all users will be considered GMs)                                                     | `null`                        |
-| DISCORD_ADMIN_ROLE_ID   | Discord Admin Role ID (if omitted, all users who authenticate will be admins in API, bypassing restrictions)          | `null`                        |
-| DISCORD_API_URL         | Discord API base URL                                                                                                  | `https://discord.com/api/v10` |
-|                         |                                                                                                                       |                               |
-| OIDC_ISSUER             | Issuer URL of the OIDC provider. The configuration should be at `${issuer}/.well-known/openid-configuration`          | `null`                        |
-| OIDC_CLIENT_ID          | OpenID Connect authentication Client ID                                                                               | `null`                        |
-| OIDC_CLIENT_SECRET      | OpenID Connect authentication Client Secret                                                                           | `null`                        |
-| OIDC_EXTRA_SCOPES       | Extra scopes you might need for your auth provider. `openid email profile` is always included.                        | `null`                        |
-| OIDC_USERNAME_ATTRIBUTE | Attribute to use for the username.                                                                                    | `preferred_username`          |
-| OIDC_ROLE_CLAIM         | Claim name to get roles to define levels of user auth                                                                 | `groups`                      |
-|                         |                                                                                                                       |                               |
-|                         | **NOTE: Redis is currently non-functional and will be added some time in the future**                                 |                               |
-| REDIS_ENABLED           | Enable Redis support for session storage and caching                                                                  | `false`                       |
-| REDIS_HOST              | Redis server hostname or IP address                                                                                   | `localhost`                   |
-| REDIS_PORT              | Redis server port                                                                                                     | `6379`                        |
-| REDIS_USER              | Redis username (optional)                                                                                             | `null`                        |
-| REDIS_PASS              | Redis password (optional)                                                                                             | `null`                        |
-| REDIS_DB                | Redis database number                                                                                                 | `0`                           |
+Full configuration reference can be found on the [github wiki](https://github.com/cclloyd/planeshift/wiki/Configuration)
 
 # Contributing
 
