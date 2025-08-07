@@ -5,7 +5,6 @@ import session from 'express-session';
 import { DocumentBuilder, SwaggerCustomOptions, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
-import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
@@ -18,7 +17,7 @@ async function bootstrap() {
             saveUninitialized: false, // Prevents saving of empty sessions
             cookie: {
                 httpOnly: true,
-                secure: new URL(dotEnv.EXTERNAL_URL).protocol === 'https:',
+                secure: false, // TODO: set secure conditionally?
                 maxAge: 1_000 * 60 * 60, // 1 hour for session expiration
             },
         }),

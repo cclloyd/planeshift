@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { TokenResponse } from './types.js';
 import { jwtDecode } from 'jwt-decode';
 import { createHash } from 'crypto';
+import { Request } from 'express';
 
 @Injectable()
 export class OpenIdConnectStrategy extends PassportStrategy(Strategy, 'openidconnect') {
@@ -20,7 +21,7 @@ export class OpenIdConnectStrategy extends PassportStrategy(Strategy, 'openidcon
             issuer: dotEnv.OIDC_ISSUER!,
             clientID: dotEnv.OIDC_CLIENT_ID!,
             clientSecret: dotEnv.OIDC_CLIENT_SECRET!,
-            callbackURL: `${dotEnv.EXTERNAL_URL}/api/auth/oidc/callback`,
+            callbackURL: `/api/auth/oidc/callback`,
             authorizationURL: `${dotEnv.OIDC_ISSUER!}/protocol/openid-connect/auth`,
             tokenURL: `${dotEnv.OIDC_ISSUER!}/protocol/openid-connect/token`,
             userInfoURL: `${dotEnv.OIDC_ISSUER!}/protocol/openid-connect/userinfo`,
@@ -33,16 +34,14 @@ export class OpenIdConnectStrategy extends PassportStrategy(Strategy, 'openidcon
      * Validate method: Process the profile and tokens after successful authentication.
      *
      * @param req - The original request object
-     * @param issuer - URL of the OpenID provider
-     * @param profile - User's profile data returned by the provider
-     * @param idToken - ID Token returned by the provider
-     * @param accessToken - Access Token returned by the provider
-     * @param refreshToken - (Optional) Refresh Token returned by the provider
+     * @param code - oauth2 code
+     * @param state - optional oauth2 state identifier
      * @returns User object to attach to the request
      */
     //async validate(req: any, issuer: string, profile?: any, idToken?: string, accessToken?: string, refreshToken?: string) {
-    async validate(@Req() req: any, code: string, state: string) {
-        const REDIRECT_URI = `${dotEnv.EXTERNAL_URL}/api/auth/oidc/callback`;
+    async validate(@Req() req: Request, code: string, state: string) {
+        const origin = req.get('origin') ?? `${req.protocol}://${req.get('host')}`;
+        const REDIRECT_URI = `${origin}/api/auth/oidc/callback`;
         const data = new URLSearchParams({
             grant_type: 'authorization_code',
             code: code,
@@ -98,6 +97,6 @@ export class OpenIdConnectStrategy extends PassportStrategy(Strategy, 'openidcon
             sub: user._id,
             ...user.toObject(),
         };
-        return this.jwt.sign(payload, { expiresIn: '7d' });
+        return this.jwt.sign(payload, { expiresIn: dotEnv.LOGIN_DURATION });
     }
 }

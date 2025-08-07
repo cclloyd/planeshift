@@ -1,7 +1,8 @@
-import { Controller, Get, Req, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Request, UseGuards } from '@nestjs/common';
 import { GameService } from './game.service.js';
 import { ApiAuthGuard } from '../auth/api.guard.js';
 import { ApiOkResponse, ApiOperation, ApiSecurity } from '@nestjs/swagger';
+import { GenericEvalDto } from './dto/eval.dto.js';
 
 @ApiSecurity('tokenAuth')
 @UseGuards(ApiAuthGuard)
@@ -33,5 +34,15 @@ export class GameController {
     @ApiOkResponse({ description: 'Foundry system information.' })
     async getSystem() {
         return await this.game.getSystem();
+    }
+
+    @Post('evaluate')
+    @ApiOperation({
+        summary: 'Run arbitrary command in the game console.',
+        description:
+            'Evaluate a javascript function in the game console and return the result. This allows you to do pretty much anything you could do in Foundry.',
+    })
+    async evaluateFunction(@Body() body: GenericEvalDto) {
+        await this.game.evaluateFunction(body);
     }
 }

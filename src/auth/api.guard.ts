@@ -1,8 +1,10 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { ApiKeyAuthGuard } from './apikeys/apikeys.guard.js';
 import { JwtAuthGuard } from './jwt.guard.js';
 import { dotEnv } from '../env.js';
 import { AuthGuard } from '@nestjs/passport';
+import { Request } from 'express';
+import { firstValueFrom } from 'rxjs';
 
 /**
  * A composite guard that combines multiple authentication methods.
@@ -19,6 +21,12 @@ export class ApiAuthGuard implements CanActivate {
         private readonly jwtGuard: JwtAuthGuard,
     ) {}
 
+    getAuthenticateOptions(context: ExecutionContext) {
+        const request = context.switchToHttp().getRequest<Request>();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
+        return { state: (request as any).oauthState };
+    }
+
     /**
      * Determines if the current request is allowed to proceed.
      * Tries multiple authentication methods in sequence:
@@ -32,7 +40,7 @@ export class ApiAuthGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         // Note: We catch errors here because they throw some kind of unauthorized error usually.
 
-        if (dotEnv.AUTH_METHOD === 'disabled') {
+        if (dotEnv.AUTH_PROVIDERS.length === 0) {
             return true;
         }
 
@@ -50,33 +58,64 @@ export class ApiAuthGuard implements CanActivate {
             /* empty */
         }
 
-        if (dotEnv.DISCORD_CLIENT_ID)
-            // Try the Discord passport guard
-            try {
-                const c = AuthGuard('discord');
-                const guard = new c();
-                // Do connectToFoundry first to set access_token in cookies on successful connectToFoundry.
-                await guard.canActivate(context);
-                // Try JWT one more time to inject user now that access_token is set
-                if (await this.jwtGuard.canActivate(context)) return true;
-            } catch {
-                /* empty */
+        // If we reach this point, the user will need to reauthenticate.  We will go down the line of enabled providers.
+
+        const request = context.switchToHttp().getRequest<Request>();
+        const redirectUrl = `${request.protocol}://${request.host}${request.originalUrl}`;
+        const res = request.res;
+        if (res) {
+            res.cookie('login_redirect', redirectUrl, {
+                httpOnly: true,
+                secure: request.secure,
+                maxAge: 5 * 60 * 1000,
+                sameSite: 'lax',
+                path: '/',
+            });
+        }
+
+        // Define login strategies that require authentication to call in the order we want later
+        const loginStrategies = {
+            discord: async () => {
+                if (dotEnv.DISCORD_CLIENT_ID) {
+                    const DiscordAuth = AuthGuard('discord');
+                    const guard = new DiscordAuth();
+                    const result = guard.canActivate(context);
+                    if (typeof result === 'boolean') {
+                        return result;
+                    } else if (result instanceof Promise) {
+                        return await result;
+                    } else if ('subscribe' in result && typeof result.subscribe === 'function') {
+                        // It's an Observable
+                        return await firstValueFrom(result);
+                    }
+                }
+            },
+            oidc: async () => {
+                if (dotEnv.OIDC_CLIENT_ID) {
+                    const OIDCAuth = AuthGuard('openidconnect');
+                    const guard = new OIDCAuth();
+                    const result = guard.canActivate(context);
+                    if (typeof result === 'boolean') {
+                        return result;
+                    } else if (result instanceof Promise) {
+                        return await result;
+                    } else if ('subscribe' in result && typeof result.subscribe === 'function') {
+                        // It's an Observable
+                        return await firstValueFrom(result);
+                    }
+                }
+            },
+        };
+
+        for (const provider of dotEnv.AUTH_PROVIDERS) {
+            if (provider in loginStrategies) {
+                const result = await loginStrategies[provider as keyof typeof loginStrategies]();
+                if (result) {
+                    return result;
+                }
             }
+        }
 
-        if (dotEnv.OIDC_CLIENT_ID)
-            // Try the OIDC passport guard
-            try {
-                const c = AuthGuard('openidconnect');
-                const guard = new c();
-
-                // Do connectToFoundry first to set access_token in cookies on successful connectToFoundry.
-                await guard.canActivate(context);
-                // Try JWT one more time to inject user now that access_token is set
-                if (await this.jwtGuard.canActivate(context)) return true;
-            } catch {
-                /* empty */
-            }
-
-        throw new UnauthorizedException();
+        return false;
     }
 }

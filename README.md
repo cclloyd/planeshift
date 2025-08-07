@@ -85,40 +85,47 @@ Whatever hostname/protocol you set for your proxy, you should also set the varia
 
 Most of the API is configured via environment variables. A `.env` file will be loaded automatically if found.
 
-| Environment Variable    | Description                                                                                                          | Default                 |
-|-------------------------|----------------------------------------------------------------------------------------------------------------------|-------------------------|
-| EXTERNAL_URL            | Public facing URL of the container.  Required for the auth callbacks to work properly.                               | `http://localhost:3000` |
-| SECRET_KEY              | Secret key for sessions/authentication                                                                               | `null`                  |
-|                         |                                                                                                                      |                         |
-| MONGO_HOST              | MongoDB server hostname or IP address                                                                                | `localhost`             |
-| MONGO_PORT              | MongoDB server port                                                                                                  | `27017`                 |
-| MONGO_USER              | MongoDB username                                                                                                     | `planeshift`            |
-| MONGO_PASS              | MongoDB password                                                                                                     | `CHANGEME`              |
-| MONGO_DB                | MongoDB database name                                                                                                | `planeshift`            |
-|                         |                                                                                                                      |                         |
-| FOUNDRY_HOST            | Foundry VTT instance URL                                                                                             | `null`                  |
-| FOUNDRY_USER            | Username to log into Foundry VTT game                                                                                | `null`                  |
-| FOUNDRY_PASS            | Password to log into Foundry VTT game                                                                                | `null`                  |
-| FOUNDRY_ADMIN_PASS      | (Optional) Admin password for extra Foundry instance management                                                      | `null`                  |
-| FOUNDRY_LOG_ENABLED     | Enable Foundry browser console logging                                                                               | `false`                 |
-|                         |                                                                                                                      |                         |
-| AUTH_STRATEGY           | Method to use for authentication with the API. <br> *Currently supported methods are:* `discord`, `oidc`, `disabled` | `discord`               |
-|                         |                                                                                                                      |                         |
-| DISCORD_CLIENT_ID       | Discord application Client ID                                                                                        | `null`                  |
-| DISCORD_CLIENT_SECRET   | Discord application Client Secret                                                                                    | `null`                  |
-| DISCORD_GUILD_ID        | Discord server ID for authentication                                                                                 | `null`                  |
-| DISCORD_ROLE_ID         | Discord Role ID required for API access                                                                              | `null`                  |
-| DISCORD_GM_ROLE_ID      | Discord GM Role ID (if omitted, all users will be considered GMs)                                                    | `null`                  |
-| DISCORD_ADMIN_ROLE_ID   | Discord Admin Role ID (if omitted, all users will be admins in API, bypassing restrictions)                          | `null`                  |
-|                         |                                                                                                                      |                         |
-| OIDC_ISSUER             | Issuer URL of the OIDC provider. The configuration should be at `${issuer}/.well-known/openid-configuration`         | `null`                  |
-| OIDC_CLIENT_ID          | OpenID Connect authentication Client ID                                                                              | `null`                  |
-| OIDC_CLIENT_SECRET      | OpenID Connect authentication Client Secret                                                                          | `null`                  |
-| OIDC_EXTRA_SCOPES       | Extra scopes you might need for your auth provider. `openid email profile` is always included.                       | `null`                  |
-| OIDC_USERNAME_ATTRIBUTE | Attribute to use for the username.                                                                                   | `preferred_username`    |
-| OIDC_ROLE_CLAIM         | Claim name to get roles to define levels of user auth                                                                | `groups`                |
-| OIDC_GM_ROLE            | Role/group of users that are considered GM                                                                           | `null`                  |
-| OIDC_ADMIN_ROLE         | Role/group of users that are considered API admins.  They bypass all permission restrictions.                        | `null`                  |
+| Environment Variable    | Description                                                                                                           | Default                       |
+|-------------------------|-----------------------------------------------------------------------------------------------------------------------|-------------------------------|
+| SECRET_KEY              | Secret key for sessions/authentication                                                                                | `null`                        |
+|                         |                                                                                                                       |                               |
+| MONGO_HOST              | MongoDB server hostname or IP address                                                                                 | `localhost`                   |
+| MONGO_PORT              | MongoDB server port                                                                                                   | `27017`                       |
+| MONGO_USER              | MongoDB username                                                                                                      | `planeshift`                  |
+| MONGO_PASS              | MongoDB password                                                                                                      | `planeshift`                  |
+| MONGO_DB                | MongoDB database name                                                                                                 | `planeshift`                  |
+|                         |                                                                                                                       |                               |
+| FOUNDRY_HOST            | Foundry VTT instance URL                                                                                              | `null`                        |
+| FOUNDRY_USER            | Username to log into Foundry VTT game                                                                                 | `APIUser`                     |
+| FOUNDRY_PASS            | Password to log into Foundry VTT game                                                                                 | `null`                        |
+| FOUNDRY_ADMIN_PASS      | (Optional) Admin password for extra Foundry instance management                                                       | `null`                        |
+| FOUNDRY_LOG_ENABLED     | Enable Foundry browser console logging                                                                                | `false`                       |
+|                         |                                                                                                                       |                               |
+| AUTH_PROVIDERS          | Comma separated list of auth providers to attempt, or skip if omitted. Set to empty string to disable authentication. | `discord,oidc`                |
+| LOGIN_DURATION          | Duration for user login sessions                                                                                      | `7d`                          |
+|                         |                                                                                                                       |                               |
+| DISCORD_CLIENT_ID       | Discord application Client ID                                                                                         | `null`                        |
+| DISCORD_CLIENT_SECRET   | Discord application Client Secret                                                                                     | `null`                        |
+| DISCORD_GUILD_ID        | Discord server ID for authentication                                                                                  | `null`                        |
+| DISCORD_ROLE_ID         | Discord Role ID required for API access                                                                               | `null`                        |
+| DISCORD_GM_ROLE_ID      | Discord GM Role ID (if omitted, all users will be considered GMs)                                                     | `null`                        |
+| DISCORD_ADMIN_ROLE_ID   | Discord Admin Role ID (if omitted, all users who authenticate will be admins in API, bypassing restrictions)          | `null`                        |
+| DISCORD_API_URL         | Discord API base URL                                                                                                  | `https://discord.com/api/v10` |
+|                         |                                                                                                                       |                               |
+| OIDC_ISSUER             | Issuer URL of the OIDC provider. The configuration should be at `${issuer}/.well-known/openid-configuration`          | `null`                        |
+| OIDC_CLIENT_ID          | OpenID Connect authentication Client ID                                                                               | `null`                        |
+| OIDC_CLIENT_SECRET      | OpenID Connect authentication Client Secret                                                                           | `null`                        |
+| OIDC_EXTRA_SCOPES       | Extra scopes you might need for your auth provider. `openid email profile` is always included.                        | `null`                        |
+| OIDC_USERNAME_ATTRIBUTE | Attribute to use for the username.                                                                                    | `preferred_username`          |
+| OIDC_ROLE_CLAIM         | Claim name to get roles to define levels of user auth                                                                 | `groups`                      |
+|                         |                                                                                                                       |                               |
+|                         | **NOTE: Redis is currently non-functional and will be added some time in the future**                                 |                               |
+| REDIS_ENABLED           | Enable Redis support for session storage and caching                                                                  | `false`                       |
+| REDIS_HOST              | Redis server hostname or IP address                                                                                   | `localhost`                   |
+| REDIS_PORT              | Redis server port                                                                                                     | `6379`                        |
+| REDIS_USER              | Redis username (optional)                                                                                             | `null`                        |
+| REDIS_PASS              | Redis password (optional)                                                                                             | `null`                        |
+| REDIS_DB                | Redis database number                                                                                                 | `0`                           |
 
 # Contributing
 

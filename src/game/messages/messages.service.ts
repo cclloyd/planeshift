@@ -116,12 +116,24 @@ export class MessagesService {
     }
 
     async getAllMessages(options: GetPaginatedMessagesOptions = {}) {
+        const _start = new Date();
         const { page = 1, limit = 100, links = false, order = 'desc', type = ChatMessageType.ALL, whispers = true } = options;
         const messages = (await this.foundry.runFoundry(() => {
-            return game.data!.messages!;
+            //return game.data!.messages!;
+            // @ts-expect-error
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+            // TODO: Get in browser paginate function working
+            // TODO: Then once it works, define a type for the in game window to put helper functions on
+            return window.paginateRaw(game.data!.messages!, page, limit, order, type);
         })) as ChatMessage[];
+        const _end = new Date();
+        console.log(`getAllMessages took ${_end.getTime() - _start.getTime()}ms`);
+        return messages;
         // TODO: See if its faster to inject a paginate callback into the page onPageLoad then pass in paginate query params to the runFoundry function to get a smaller list back vs parsing the list ourselves
-        return this.paginateResults(messages, page, limit, links, order, type, whispers);
+        const paginated = this.paginateResults(messages, page, limit, links, order, type, whispers);
+        // const _end = new Date();
+        // console.log(`getAllMessages took ${_end.getTime() - _start.getTime()}ms`);
+        return paginated;
     }
 
     async getMessage(id: string) {

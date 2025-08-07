@@ -1,12 +1,13 @@
-import { Controller, Get, HttpException, HttpStatus, Optional, Query, Req, Request, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus, Optional, Query, Req, Res, UseGuards } from '@nestjs/common';
+import type { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import { AuthService } from './auth.service.js';
 import { DiscordStrategy } from './discord.strategy.js';
-import { Response } from 'express';
 import { ApiAuthGuard } from './api.guard.js';
 import { OpenIdConnectStrategy } from './oidc.strategy.js';
-import { UserDocument, User } from './users/schemas/users.schema.js';
+import { User, UserDocument } from './users/schemas/users.schema.js';
 import { ReqUser } from './users/user.decorator.js';
 import { ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { parseCookies } from '../util.js';
 
 @ApiSecurity('tokenAuth')
 @ApiTags('Auth')
@@ -32,42 +33,40 @@ export class AuthController {
     @Get('auth/logout')
     @ApiOperation({ summary: 'Logout', description: 'Logs out the current user session.' })
     @ApiNoContentResponse({ description: 'User successfully logged out.' })
-    async logout(@Request() req: Request) {
+    async logout(@Req() req: ExpressRequest) {
         // @ts-expect-error
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-call
         return req.logout();
     }
 
     @Get('oidc/callback')
     @ApiOperation({ summary: 'OIDC callback', description: 'Handles the OpenID Connect provider callback.' })
     @ApiResponse({ status: 302, description: 'Redirects to the game API endpoint after successful login.' })
-    async oidcCallback(@Req() req: Request, @Res() res: Response, @Query('code') code: string, @Query('state') state: string) {
+    async oidcCallback(@Req() req: ExpressRequest, @Res() res: ExpressResponse, @Query('code') code: string, @Query('state') state: string) {
         if (!this.oidc) throw new HttpException(`OIDC auth is not enabled.`, HttpStatus.NOT_FOUND);
         const accessToken = await this.oidc.validate(req, code, state);
-        res.cookie('access_token', accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
-            sameSite: 'lax',
-            path: '/',
-        });
-        res.redirect('/api/swagger/');
+        return this.apiBrowserLogin(accessToken, req, res);
     }
 
     @Get('discord/callback')
     @ApiOperation({ summary: 'Discord callback', description: 'Handles the Discord OAuth callback.' })
     @ApiResponse({ status: 302, description: 'Redirects to the game API endpoint after successful login.' })
-    async discordCallback(@Req() req: Request, @Res() res: Response, @Query('code') code: string, @Query('state') state: string) {
+    async discordCallback(@Req() req: ExpressRequest, @Res() res: ExpressResponse, @Query('code') code: string, @Query('state') state: string) {
         if (!this.discord) throw new HttpException(`Discord auth is not enabled.`, HttpStatus.NOT_FOUND);
-        const accessToken = await this.discord.validate(code, state);
+        const accessToken = await this.discord.validate(req, code, state);
+        return this.apiBrowserLogin(accessToken, req, res);
+    }
+
+    async apiBrowserLogin(accessToken: string, @Req() req: ExpressRequest, @Res() res: ExpressResponse) {
+        const cookies = parseCookies(req.headers.cookie);
+        const redirectTo = cookies['login_redirect'];
+        res.clearCookie('login_redirect', { path: '/' });
         res.cookie('access_token', accessToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: req.secure,
             maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
             sameSite: 'lax',
             path: '/',
         });
-        // TODO: Redirect to original page
-        res.redirect('/api/swagger/');
+        res.redirect(redirectTo ?? '/api/swagger/');
     }
 }
