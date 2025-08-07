@@ -34,6 +34,8 @@ export interface FoundryEnv {
     REDIS_DB?: string;
     LOGIN_DURATION: string;
     AUTH_PROVIDERS: string[];
+    EVAL_ENABLED: boolean;
+    EVAL_ADMIN_ONLY: boolean;
 }
 
 export const dotEnv: FoundryEnv = {
@@ -69,6 +71,8 @@ export const dotEnv: FoundryEnv = {
     REDIS_PASS: process.env.REDIS_PASS ?? undefined,
     REDIS_DB: process.env.REDIS_DB ?? '0',
     LOGIN_DURATION: process.env.LOGIN_DURATION ?? '7d',
+    EVAL_ENABLED: new LooseBoolean(process.env.EVAL_ENABLED ?? true).valueOf(),
+    EVAL_ADMIN_ONLY: new LooseBoolean(process.env.EVAL_ADMIN_ONLY).valueOf(),
 };
 
 export const requireEnv = () => {

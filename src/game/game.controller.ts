@@ -3,6 +3,8 @@ import { GameService } from './game.service.js';
 import { ApiAuthGuard } from '../auth/api.guard.js';
 import { ApiOkResponse, ApiOperation, ApiSecurity } from '@nestjs/swagger';
 import { GenericEvalDto } from './dto/eval.dto.js';
+import { ReqUser } from '../auth/users/user.decorator.js';
+import { UserDocument } from '../auth/users/schemas/users.schema.js';
 
 @ApiSecurity('tokenAuth')
 @UseGuards(ApiAuthGuard)
@@ -42,7 +44,7 @@ export class GameController {
         description:
             'Evaluate a javascript function in the game console and return the result. This allows you to do pretty much anything you could do in Foundry.',
     })
-    async evaluateFunction(@Body() body: GenericEvalDto) {
-        await this.game.evaluateFunction(body);
+    async evaluateFunction(@Body() body: GenericEvalDto, @ReqUser() user: UserDocument) {
+        await this.game.evaluateFunction(body, user);
     }
 }

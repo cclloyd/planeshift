@@ -2,6 +2,9 @@ import { Body, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { FoundryService } from '../foundry/foundry.service.js';
 import { GenericEvalDto } from './dto/eval.dto.js';
 import { EvaluateFunc } from 'puppeteer';
+import { dotEnv } from '../env.js';
+import { UserDocument } from '../auth/users/schemas/users.schema.js';
+import { ReqUser } from '../auth/users/user.decorator.js';
 
 @Injectable()
 export class GameService {
@@ -31,7 +34,12 @@ export class GameService {
         return gameData;
     }
 
-    async evaluateFunction(@Body() body: GenericEvalDto): Promise<any> {
+    async evaluateFunction(@Body() body: GenericEvalDto, @ReqUser() user: UserDocument): Promise<any> {
+        if (!dotEnv.EVAL_ENABLED) throw new HttpException('The `evaluate` endpoint is disabled on this server.', HttpStatus.SERVICE_UNAVAILABLE);
+        console.log('user', user);
+        if (dotEnv.EVAL_ADMIN_ONLY && !user.is_superuser)
+            throw new HttpException('The `evaluate` endpoint is disabled on this server.', HttpStatus.SERVICE_UNAVAILABLE);
+
         const { fn, args } = body;
         const jsFunction = eval(`(${fn})`) as EvaluateFunc<any>;
         return await this.foundry.runFoundry(jsFunction, ...args);
