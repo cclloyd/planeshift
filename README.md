@@ -23,6 +23,7 @@ For the API to be able to connect to your instance, you will need to create a pl
 - API Keys for external services to access the API
 - Supports FoundryVTT v12, possibly other versions (untested)
 - Full docker support
+- An extensible `evaluate` endpoint allowing for anything in a running foundry game to be supported.
 
 # Deployment
 
