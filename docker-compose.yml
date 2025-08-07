@@ -6,28 +6,28 @@ services:
       - "3000:3000"
     environment:
       SECRET_KEY: 'CHANGEME'
-      # MONGO_HOST: 'localhost'
-      # MONGO_PASS: '27017'
+      MONGO_HOST: 'mongo'
+      # MONGO_PORT: '27017'
       # MONGO_DB: 'planeshift'
-      MONGO_USER: 'planeshift'
+      # MONGO_USER: 'planeshift'
       MONGO_PASS: 'CHANGEME'
 
       # Foundry settings
       FOUNDRY_HOST: 'https://dnd.example.com'
-      FOUNDRY_USER: 'APIUser'
+      # FOUNDRY_USER: 'APIUser'
       FOUNDRY_PASS: 'CHANGEME'
       # FOUNDRY_ADMIN_PASS: '' # Optional.  Gives additional control over restarting and managing the game.
       # FOUNDRY_LOG_ENABLED: 'false'
 
-      # AUTH_STRATEGY: 'discord' # discord, oidc, disabled
+      # AUTH_PROVIDERS: 'discord,oidc' # csv list of providers to try sequentially.  If blank, authentication is disabled.
 
       # Discord auth settings
-      DISCORD_CLIENT_ID: 'CHANGEME'
-      DISCORD_CLIENT_SECRET: 'CHANGEME'
-      # DISCORD_GUILD_ID: ''
-      # DISCORD_ROLE_ID: ''
-      # DISCORD_GM_ROLE_ID: '' # (if omitted, all users will be considered GMs
-      # DISCORD_ADMIN_ROLE_ID: 'ADMIN_ROLE_ID (if omitted, all users will be considered admins in the API, bypassing all permission restrictions.)'
+      # DISCORD_CLIENT_ID: 'CHANGEME'
+      # DISCORD_CLIENT_SECRET: 'CHANGEME'
+      # DISCORD_GUILD_ID: '' # (If omitted, anyone with a discord account can authenticate)
+      # DISCORD_ROLE_ID: '' # (If omitted, anyone in the specified discord server can authenticate)
+      # DISCORD_GM_ROLE_ID: '' # (If omitted, all users will be considered GMs)
+      # DISCORD_ADMIN_ROLE_ID: '' (If omitted, all users will be considered admins in the API, bypassing all permission restrictions.)
 
       # OIDC Auth settings
       # OIDC_CLIENT_ID: ''
